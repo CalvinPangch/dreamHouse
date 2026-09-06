@@ -14,6 +14,33 @@ npx http-server -p 8080      # or: python3 -m http.server 8080
 > Opening `index.html` straight from the file system will not work: ES modules and
 > import maps need an `http://` origin.
 
+## Deploying to Vercel
+
+The repo is a static site with no build step, and `vercel.json` configures it as such
+(`framework: null`, output directory `.`), so a deploy needs no dashboard settings.
+
+**From the CLI**
+
+```bash
+npm i -g vercel
+vercel          # preview deployment
+vercel --prod   # production
+```
+
+**From the dashboard** — *Add New… → Project*, import `CalvinPangch/dreamHouse`, and
+deploy. Leave Framework Preset on *Other* and the build/output fields empty; `vercel.json`
+supplies them. Pick the branch you want under *Settings → Git → Production Branch*
+(this work lives on `claude/threejs-3d-model-layout-p3k263`; every branch also gets its
+own preview URL automatically).
+
+`vercel.json` also sets the caching the model wants: `vendor/` (three.js) is immutable
+for a year, `src/` always revalidates, so redeploys ship your changes instantly while the
+1 MB library stays cached.
+
+There is deliberately **no `package.json`** in the repo — that keeps Vercel on the
+zero-install static path. If you add one later, make sure it has no `build` script or
+set the build command to empty, otherwise the deploy will fail looking for build output.
+
 ## What is modelled
 
 | Brochure spec | In the model |
@@ -66,6 +93,8 @@ src/textures.js     procedural canvas textures (roof tiles, plaster, pavers, gra
 src/sky.js          gradient sky dome shader
 src/main.js         scene, lighting, views, time of day, wiring
 vendor/three/       three.js r169 (module build + OrbitControls)
+vercel.json         static deploy config (no build step, cache headers)
+preview.png         social/OG preview image
 ```
 
 Everything is authored in **feet**, matching the brochure; `main.js` scales the root
