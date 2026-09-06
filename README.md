@@ -1,0 +1,88 @@
+# Dream House — Double Storey Terrace (双层排屋) 3D Model
+
+An interactive [three.js](https://threejs.org) model of the double storey terrace house
+from the sales brochure: a row of gable-roofed units on 21' × 60' and 23' × 60' lots,
+4 bedrooms / 3 bathrooms, with the car porch, gated frontage and streetscape modelled.
+
+No build step, no npm install — open it on any static server.
+
+```bash
+npx http-server -p 8080      # or: python3 -m http.server 8080
+# then open http://localhost:8080
+```
+
+> Opening `index.html` straight from the file system will not work: ES modules and
+> import maps need an `http://` origin.
+
+## What is modelled
+
+| Brochure spec | In the model |
+| --- | --- |
+| 双层排屋 · Double storey terrace | Two 10' storeys, gable roof at 34°, party walls shared between units |
+| 21'×60' & 23'×60' | Intermediate lots 21' wide, the two corner lots 23'; every lot 60' deep (6' rear yard + 34' built-up + 20' car porch) |
+| 4 房 3 厕 · 4 bed 3 bath | Master + ensuite, bedrooms 2–4, common bath upstairs, powder room downstairs |
+| Facade | White render, dark charcoal banding and gable trim, black-framed glazing, first floor cantilevered 6' over the porch on two columns |
+| 围篱保安 · Gated & guarded | Boundary walls, per-lot piers and sliding gates, guard house and boom gate at the entrance |
+| Streetscape | Paver driveways, cars, kerbs, walkway, road, street lamps, trees and hedges |
+
+### Floor plans
+
+**Ground floor** — car porch · living · dining · staircase · dry kitchen · wet kitchen /
+yard · bathroom 1 · store.
+
+**First floor** — master bedroom with master bath and recessed balcony over the porch ·
+bedroom 2 · bedroom 3 · bedroom 4 · bathroom 2 · family area · corridor · stair void.
+
+Units alternate handedness (mirrored pairs), the way a real terrace row is laid out.
+
+## Controls
+
+| | |
+| --- | --- |
+| Orbit / zoom / pan | drag · scroll · right-drag |
+| Views | `1` street · `2` facade · `3` aerial · `4` cutaway · `5` ground plan · `6` upper plan · `7` interior |
+| Panel | `h` hides it, `r` resets the camera |
+
+The panel also toggles the roof, the first floor, room labels and furniture, sets the
+number of units in the row (2–10), and drives a time-of-day slider that moves the sun,
+recolours the sky and lights the windows at night.
+
+Room labels are drawn on one unit only (the middle unmirrored one) so the plan views
+stay readable.
+
+## Layout of the code
+
+```
+index.html          page shell, control panel, import map
+src/config.js       lot & storey dimensions (feet), palette
+src/plan.js         the floor plans: wall segments, openings, rooms, furniture
+src/build.js        wall/opening/railing/stair/label primitives
+src/house.js        one unit: structure, both floors, roof, facade
+src/terrace.js      the row of units
+src/site.js         driveways, gates, road, landscaping, guard house
+src/furniture.js    blocky furniture and cars
+src/materials.js    shared materials
+src/textures.js     procedural canvas textures (roof tiles, plaster, pavers, grass…)
+src/sky.js          gradient sky dome shader
+src/main.js         scene, lighting, views, time of day, wiring
+vendor/three/       three.js r169 (module build + OrbitControls)
+```
+
+Everything is authored in **feet**, matching the brochure; `main.js` scales the root
+group by `0.3048` so the scene itself is metric.
+
+### Changing the design
+
+* Room sizes and doors/windows live in `src/plan.js` — wall segments are
+  `{ x1, z1, x2, z2, openings: [{ at, w, type, sill, head }] }`, with `x` across the
+  lot and `z` from the rear wall towards the street.
+* Storey heights, lot widths, setbacks and the roof pitch are in `src/config.js`.
+* Colours and finishes are in `src/materials.js` / `src/textures.js`.
+
+Plans are drawn on the 21' lot and scaled across for the 23' corner lots.
+
+### three.js source
+
+`vendor/three` holds three.js r169 so the model runs offline. To load it from a CDN
+instead, swap the two entries in the import map at the bottom of `index.html` for the
+jsDelivr URLs noted in the comment above it.
