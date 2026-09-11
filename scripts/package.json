@@ -1,0 +1,9 @@
+{
+  "name": "dreamhouse-scripts",
+  "private": true,
+  "type": "module",
+  "description": "CI-only tooling. Kept out of the repo root so Vercel stays on its zero-install static path.",
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

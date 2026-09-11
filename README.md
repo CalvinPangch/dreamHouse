@@ -19,6 +19,45 @@ npx http-server -p 8080      # or: python3 -m http.server 8080
 The repo is a static site with no build step, and `vercel.json` configures it as such
 (`framework: null`, output directory `.`), so a deploy needs no dashboard settings.
 
+### Continuous deployment (GitHub Actions)
+
+`.github/workflows/deploy.yml` deploys on every push:
+
+| Branch | Result |
+| --- | --- |
+| the repository's default branch | production deployment |
+| any other branch | its own Vercel preview URL |
+
+Each run first serves the site and loads it in headless Chromium
+(`scripts/smoke.mjs`): it walks all seven views, checks every asset responds and
+that each frame actually rendered geometry, and fails on any console error or
+uncaught exception. A static site returns 200 even when the scene is broken, so
+nothing deploys until that passes. Screenshots of every view are attached to the
+run as an artifact, and the deployment URL is printed in the run summary.
+
+**One-time setup** — add three repository secrets under
+*Settings → Secrets and variables → Actions*:
+
+| Secret | Where it comes from |
+| --- | --- |
+| `VERCEL_TOKEN` | Vercel → *Account Settings → Tokens* → create a token |
+| `VERCEL_ORG_ID` | run `vercel link` locally, then read `.vercel/project.json` |
+| `VERCEL_PROJECT_ID` | same file |
+
+```bash
+npm i -g vercel
+vercel link          # creates .vercel/project.json (gitignored)
+cat .vercel/project.json
+```
+
+> **Pick one deploy path.** If you *also* connect the repo in Vercel's dashboard,
+> both Vercel's Git integration and this workflow will deploy every push, giving
+> you two deployments per commit. Either skip connecting the repo to Git in
+> Vercel (the token-based workflow doesn't need it), or turn Vercel's own
+> trigger off by adding `"git": { "deploymentEnabled": false }` to `vercel.json`.
+
+### Deploying by hand
+
 **From the CLI**
 
 ```bash
@@ -37,9 +76,11 @@ own preview URL automatically).
 for a year, `src/` always revalidates, so redeploys ship your changes instantly while the
 1 MB library stays cached.
 
-There is deliberately **no `package.json`** in the repo — that keeps Vercel on the
-zero-install static path. If you add one later, make sure it has no `build` script or
-set the build command to empty, otherwise the deploy will fail looking for build output.
+There is deliberately **no `package.json` at the repo root** — that keeps Vercel on the
+zero-install static path. The CI-only test dependency lives in `scripts/package.json`,
+outside the directory Vercel inspects. If you add a root `package.json` later, make sure
+it has no `build` script or set the build command to empty, otherwise the deploy will
+fail looking for build output.
 
 ## What is modelled
 
@@ -95,6 +136,8 @@ src/main.js         scene, lighting, views, time of day, wiring
 vendor/three/       three.js r169 (module build + OrbitControls)
 vercel.json         static deploy config (no build step, cache headers)
 preview.png         social/OG preview image
+scripts/smoke.mjs   browser smoke test run by CI before every deploy
+.github/workflows/  deploy pipeline
 ```
 
 Everything is authored in **feet**, matching the brochure; `main.js` scales the root

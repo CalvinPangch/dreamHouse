@@ -308,4 +308,4 @@ tick();
 document.getElementById('loading')?.remove();
 
 // expose for console tinkering
-window.dreamHouse = { scene, camera, controls, state, view, setHour, DIM, LEVEL, ft };
+window.dreamHouse = { renderer, scene, camera, controls, state, view, setHour, DIM, LEVEL, ft };
