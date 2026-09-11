@@ -68,9 +68,8 @@ vercel --prod   # production
 
 **From the dashboard** — *Add New… → Project*, import `CalvinPangch/dreamHouse`, and
 deploy. Leave Framework Preset on *Other* and the build/output fields empty; `vercel.json`
-supplies them. Pick the branch you want under *Settings → Git → Production Branch*
-(this work lives on `claude/threejs-3d-model-layout-p3k263`; every branch also gets its
-own preview URL automatically).
+supplies them. Production deploys from `main`; every other branch gets its own preview URL
+automatically (change this under *Settings → Git → Production Branch*).
 
 `vercel.json` also sets the caching the model wants: `vendor/` (three.js) is immutable
 for a year, `src/` always revalidates, so redeploys ship your changes instantly while the
