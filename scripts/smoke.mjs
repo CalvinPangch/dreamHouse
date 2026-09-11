@@ -57,14 +57,14 @@ try {
       el.dispatchEvent(new Event('input', { bubbles: true }));
     }, value);
 
-  await setRange('#units', '9'); // rebuilds the whole row
+  await setRange('#pairs', '3'); // rebuilds the whole street
   await page.waitForTimeout(1500);
   await setRange('#hour', '20'); // night lighting
   await page.waitForTimeout(800);
 
   const state = await page.evaluate(() => window.dreamHouse.state);
-  if (state.units !== 9) fail(`unit slider did not rebuild the row (units=${state.units})`);
-  if (shotDir) await page.screenshot({ path: `${shotDir}/night-9-units.png` });
+  if (state.pairs !== 3) fail(`pair slider did not rebuild the street (pairs=${state.pairs})`);
+  if (shotDir) await page.screenshot({ path: `${shotDir}/night-3-pairs.png` });
 } catch (err) {
   fail(`${err.name}: ${err.message}`);
 } finally {

@@ -20,11 +20,11 @@ export function initUI(api) {
     });
   });
 
-  const units = $('units');
-  const unitsOut = $('units-value');
-  units?.addEventListener('input', () => {
-    unitsOut.textContent = units.value;
-    api.setUnits(Number(units.value));
+  const pairs = $('pairs');
+  const pairsOut = $('pairs-value');
+  pairs?.addEventListener('input', () => {
+    pairsOut.textContent = pairs.value;
+    api.setPairs(Number(pairs.value));
   });
 
   const hour = $('hour');
@@ -56,9 +56,9 @@ export function initUI(api) {
   return {
     sync(state) {
       for (const [key, el] of Object.entries(toggles)) if (el) el.checked = state[key];
-      if (units) {
-        units.value = String(state.units);
-        unitsOut.textContent = String(state.units);
+      if (pairs) {
+        pairs.value = String(state.pairs);
+        pairsOut.textContent = String(state.pairs);
       }
       if (hour) {
         hour.value = String(state.hour);

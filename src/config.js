@@ -1,63 +1,93 @@
 /**
- * Dimensions for the "Double Storey Terrace" from the sales brochure.
+ * Dimensions for the double storey SEMI-DETACHED house, taken from the
+ * architect's floor plan.
  *
- * Everything in this project is authored in FEET (the unit used on the
- * brochure: 21' x 60' and 23' x 60' lots). The root group is scaled by FT
- * in main.js so the scene itself is metric.
+ * Everything is authored in FEET (the plan is dimensioned in feet and inches);
+ * the root group is scaled by FT in main.js so the scene itself is metric.
+ *
+ * Plan dimension chains, both of which close exactly:
+ *   width  29'11" = 11'0" + 5'5" + 13'6"   (ground)
+ *                 = 5'11" + 12'0" + 12'0"  (first floor)
+ *   depth  47'10" = 14'10" + 5'3" + 10'0" + 17'9", plus 16'5" porch / balcony
  */
 
 export const FT = 0.3048;
 export const ft = (v) => v * FT;
+/** feet + inches -> feet */
+export const fi = (f, i = 0) => f + i / 12;
 
-/** Headline specs printed on the brochure. */
 export const SPEC = {
-  title: '双层排屋 · Double Storey Terrace',
-  price: 'RM 6xxk',
-  landSizes: ["21' x 60'", "23' x 60'"],
+  title: '双层半独立式洋房 · Double Storey Semi-Detached',
+  size: "29'11\" x 47'10\"",
   bedrooms: 4,
-  bathrooms: 3,
+  bathrooms: 4,
   tenure: '永久地契 · Freehold',
-  security: '24小时围篱保安 · 24-Hour Gated & Guarded',
 };
 
-/** Plan geometry, in feet. */
 export const DIM = {
-  // Lot: 60' deep = 6' rear yard + 34' built-up + 20' car porch / front yard.
-  lotDepth: 60,
-  rearYard: 6,
-  builtUp: 34,
-  frontYard: 20,
+  unitWidth: fi(29, 11), // 29.9167
 
-  // First floor cantilevers 6' over the car porch (see brochure facade).
-  overhang: 6,
+  // depth bands, rear -> front
+  bandA: fi(14, 10), // rear: kitchen | bedroom 4   (upper: bedrooms 2 & 3)
+  bandB: fi(5, 3),   // utility | bathrooms
+  bandC: 10,         // dining                      (upper: family hall)
+  bandD: fi(17, 9),  // living                      (upper: master bedroom)
+  front: fi(16, 5),  // car porch, balcony above
 
-  widthStandard: 21,
-  widthWide: 23,
+  // the rear strip beside the party wall is single storey - "RC ROOF" on the plan
+  rcStrip: fi(5, 11),
+
+  lotWidth: 40,
+  lotDepth: 80,
 
   wallExt: 0.75,
   wallInt: 0.4,
-  railing: 3.2,
+  railing: 3.4,
+  parapet: 2.6,
 
-  platform: 1.5, // finished floor level above the garden
-  groundHeight: 10,
-  slab: 0.8,
+  platform: 1.5,
+  groundHeight: 10.5,
+  slab: 0.85,
   upperHeight: 10,
 
-  roofPitch: 34, // degrees
-  roofEaveOverhang: 1.4,
-  roofFrontOverhang: 1.6,
+  roofPitch: 22, // degrees - one slope per unit, ridge over the party wall
+  roofEaveOverhang: 1.6,
+  roofEndOverhang: 1.6,
   roofThickness: 0.45,
 };
 
-/** Level heights derived from DIM (feet, measured from garden level). */
+/** Built-up depth: 47'10". */
+export const BUILT = DIM.bandA + DIM.bandB + DIM.bandC + DIM.bandD;
+/** Depth including the car porch / balcony: 64'3". */
+export const TOTAL_DEPTH = BUILT + DIM.front;
+
+/** Band boundaries along z (0 = rear wall, +z towards the street). */
+export const Z = {
+  rear: 0,
+  a: DIM.bandA,                                     // 14'10"
+  b: DIM.bandA + DIM.bandB,                         // 20'1"
+  c: DIM.bandA + DIM.bandB + DIM.bandC,             // 30'1"
+  front: BUILT,                                     // 47'10"
+  porch: TOTAL_DEPTH,                               // 64'3"
+};
+
+/** Key offsets across the unit (0 = party wall, +x outwards). */
+export const X = {
+  party: 0,
+  rc: DIM.rcStrip,          // 5'11"  - stair / void strip, RC roof at the rear
+  kitchen: 11,              // 11'0"  - kitchen width on the ground floor
+  passage: fi(16, 5),       // 16'5"  - 11'0" + 5'5"
+  bed2: DIM.rcStrip + 12,   // 17'11" - bedroom 2 | bedroom 3
+  wc: DIM.unitWidth - 6,    // 23'11" - bathroom strip against the outer wall
+  outer: DIM.unitWidth,
+};
+
+/** Floor levels, measured from garden level. */
 export const LEVEL = {
   ground: DIM.platform,
   upper: DIM.platform + DIM.groundHeight + DIM.slab,
   eaves: DIM.platform + DIM.groundHeight + DIM.slab + DIM.upperHeight + DIM.slab,
 };
-
-/** Depth of the first floor plate (body + cantilever). */
-export const UPPER_DEPTH = DIM.builtUp + DIM.overhang;
 
 export const PALETTE = {
   plaster: 0xf1efe9,

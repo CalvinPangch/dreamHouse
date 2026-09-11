@@ -1,25 +1,30 @@
 /**
- * One terrace unit: structure, both floor plans, roof, facade and furniture.
- * Authored in feet; the caller scales the whole model to metres.
+ * One semi-detached unit: structure, both floor plans, pitched roof, facade
+ * and furniture. Authored in feet; the caller scales the model to metres.
+ *
+ * The unit is built with its party wall on x = 0 and its outer wall at
+ * x = +29'11". The other half of the pair is the same unit with mirror: true,
+ * which maps x -> -x, so the two share the wall on x = 0.
  */
 import * as THREE from 'three';
-import { DIM, LEVEL, UPPER_DEPTH } from './config.js';
+import { DIM, LEVEL, X, Z, BUILT, TOTAL_DEPTH } from './config.js';
 import { GROUND, UPPER } from './plan.js';
 import { box, buildWall, railing, stairs, labelSprite } from './build.js';
 import { makeFurniture } from './furniture.js';
 
 const RAD = Math.PI / 180;
-const BASE_W = DIM.widthStandard; // plans are drawn on the 21' lot
+const W = DIM.unitWidth;
+const PITCH = DIM.roofPitch * RAD;
+const TAN = Math.tan(PITCH);
 
-/** Coordinate transform for lot width + mirrored (handed) units. */
-function frameFor(width, mirror) {
-  const sx = width / BASE_W;
+/** Height of the roof plane above garden level at a distance x from the ridge. */
+export const ridgeY = LEVEL.eaves + W * TAN;
+const roofY = (x) => ridgeY - Math.abs(x) * TAN;
+
+function frameFor(mirror) {
   return {
-    width,
     mirror,
-    sx,
-    X: (x) => (mirror ? width - x * sx : x * sx),
-    // rotation of a furniture item, in degrees
+    X: (x) => (mirror ? -x : x),
     R: (deg) => (mirror ? -deg : deg),
   };
 }
@@ -29,18 +34,17 @@ function transformSeg(seg, F) {
   const x2 = F.X(seg.x2);
   const alongX = Math.abs(seg.z1 - seg.z2) < 1e-6;
   const len = Math.hypot(x2 - x1, seg.z2 - seg.z1);
-  const openings = (seg.openings || []).map((op) => {
-    const at = op.at * (alongX ? F.sx : 1);
-    const w = op.w;
-    return { ...op, at: alongX && F.mirror ? Math.max(0, len - at - w) : at, w };
-  });
+  const openings = (seg.openings || []).map((op) =>
+    alongX && F.mirror ? { ...op, at: Math.max(0, len - op.at - op.w) } : { ...op }
+  );
   return { seg: { x1, z1: seg.z1, x2, z2: seg.z2 }, openings };
 }
 
-/** Slab with rectangular voids cut out of it (stair well). */
+/** Rectangular slab, with rectangular voids cut out of it. */
 function slab(parent, rect, voids, y, thickness, mat) {
   const zCuts = new Set([rect.z1, rect.z2]);
   for (const v of voids) {
+    if (v.z2 <= rect.z1 || v.z1 >= rect.z2) continue;
     zCuts.add(Math.max(rect.z1, v.z1));
     zCuts.add(Math.min(rect.z2, v.z2));
   }
@@ -50,38 +54,30 @@ function slab(parent, rect, voids, y, thickness, mat) {
     const z2 = zs[i + 1];
     if (z2 - z1 < 1e-3) continue;
     const zc = (z1 + z2) / 2;
-    const active = voids.filter((v) => v.z1 <= zc && v.z2 >= zc);
+    const active = voids
+      .filter((v) => v.z1 <= zc && v.z2 >= zc && v.x2 > rect.x1 && v.x1 < rect.x2)
+      .sort((a, b) => a.x1 - b.x1);
     const xs = [rect.x1];
-    active
-      .sort((a, b) => a.x1 - b.x1)
-      .forEach((v) => {
-        xs.push(Math.max(rect.x1, v.x1), Math.min(rect.x2, v.x2));
-      });
+    for (const v of active) xs.push(Math.max(rect.x1, v.x1), Math.min(rect.x2, v.x2));
     xs.push(rect.x2);
     for (let k = 0; k < xs.length; k += 2) {
       const x1 = xs[k];
       const x2 = xs[k + 1];
       if (x2 - x1 < 1e-3) continue;
       parent.add(
-        box(x2 - x1, thickness, z2 - z1, mat, {
-          x: (x1 + x2) / 2,
-          y: y - thickness / 2,
-          z: zc,
-        })
+        box(x2 - x1, thickness, z2 - z1, mat, { x: (x1 + x2) / 2, y: y - thickness / 2, z: zc })
       );
     }
   }
 }
 
-function addFloor(parent, floorPlan, F, opts) {
-  const { baseY, mats, thickness } = opts;
+function addFloor(parent, floorPlan, F, baseY, mats) {
   for (const seg of floorPlan.walls) {
+    const t = transformSeg(seg, F);
     if (seg.railing) {
-      const t = transformSeg(seg, F);
       railing(parent, t.seg, mats, { baseY, height: DIM.railing });
       continue;
     }
-    const t = transformSeg(seg, F);
     buildWall(parent, t.seg, t.openings, {
       height: floorPlan.height,
       thickness: seg.ext ? DIM.wallExt : DIM.wallInt,
@@ -111,53 +107,66 @@ function addLabels(parent, rooms, F, y, scale) {
   }
 }
 
-function buildRoof(unit, W, mats, { overhangLeft, overhangRight }) {
+/**
+ * Half of the pitched roof: one plane falling from the ridge over the party
+ * wall to the outer eave, clipped around the single-storey RC roof strip.
+ */
+function buildRoof(mats, F) {
   const g = new THREE.Group();
-  const p = DIM.roofPitch * RAD;
-  const eaveY = LEVEL.eaves;
-  const ridgeY = eaveY + (W / 2) * Math.tan(p);
-  const zFront = UPPER_DEPTH + DIM.roofFrontOverhang;
-  const zRear = -DIM.roofFrontOverhang;
-  const depth = zFront - zRear;
-  const zc = (zFront + zRear) / 2;
+  const eaveX = W + DIM.roofEaveOverhang;
+  const zRear = -DIM.roofEndOverhang;
+  const zFront = Z.front + DIM.roofEndOverhang;
 
-  // ceiling under the roof (revealed as the upper floor plan when hidden)
-  g.add(box(W, 0.35, UPPER_DEPTH, mats.slab, { x: W / 2, y: eaveY + 0.17, z: UPPER_DEPTH / 2 }));
-
-  const slope = (overhang, side) => {
-    const run = W / 2 + overhang;
-    const len = run / Math.cos(p);
-    const eaveEdgeY = ridgeY - run * Math.tan(p);
-    const cx = side < 0 ? (W / 2 - overhang) / 2 : (W / 2 + W + overhang) / 2;
+  const plane = (x0, x1, z0, z1) => {
+    const run = x1 - x0;
+    const len = run / Math.cos(PITCH);
+    const depth = z1 - z0;
+    // the slope falls away from the ridge, so the mirrored half tilts the other way
     const mesh = box(len, DIM.roofThickness, depth, mats.roof, {
-      x: cx,
-      y: (ridgeY + eaveEdgeY) / 2,
-      z: zc,
-      rz: side < 0 ? p : -p,
+      x: F.X((x0 + x1) / 2),
+      y: (roofY(x0) + roofY(x1)) / 2,
+      z: (z0 + z1) / 2,
+      rz: F.mirror ? PITCH : -PITCH,
     });
     g.add(mesh);
-    // fascia board at the eave
+  };
+
+  // main slope over the two storey mass, and the clipped strip at the rear
+  plane(0, eaveX, Z.a, zFront);
+  plane(X.rc, eaveX, zRear, Z.a);
+
+  // fascia along the eave
+  g.add(
+    box(0.4, 0.9, zFront - zRear, mats.trim, {
+      x: F.X(eaveX),
+      y: roofY(eaveX) - 0.35,
+      z: (zRear + zFront) / 2,
+    })
+  );
+
+  // ceiling below the roof - revealed as the first floor plan when hidden
+  for (const p of UPPER.plate) {
     g.add(
-      box(0.35, 0.85, depth, mats.trim, {
-        x: side < 0 ? -overhang : W + overhang,
-        y: eaveEdgeY - 0.3,
-        z: zc,
+      box(p.x2 - p.x1, 0.35, p.z2 - p.z1, mats.slab, {
+        x: F.X((p.x1 + p.x2) / 2),
+        y: LEVEL.eaves + 0.17,
+        z: (p.z1 + p.z2) / 2,
       })
     );
-    return { len, eaveEdgeY, run };
-  };
-  const left = slope(overhangLeft, -1);
-  const right = slope(overhangRight, 1);
+  }
 
-  // ridge capping
-  g.add(box(0.9, 0.5, depth, mats.trim, { x: W / 2, y: ridgeY + 0.28, z: zc }));
-
-  // gable end walls (front + rear) and their dark rake trims
-  const gable = (z, faceOut) => {
+  // gable end walls: right triangles between the wall head and the roof plane
+  const gable = (z, x0, x1, faceOut) => {
+    const pts = [
+      [x0, LEVEL.eaves],
+      [x1, LEVEL.eaves],
+      [x1, roofY(x1)],
+      [x0, roofY(x0)],
+    ].map(([px, py]) => [F.X(px), py]);
+    if (F.mirror) pts.reverse(); // keep the winding consistent after mirroring
     const shape = new THREE.Shape();
-    shape.moveTo(0, eaveY);
-    shape.lineTo(W, eaveY);
-    shape.lineTo(W / 2, ridgeY);
+    shape.moveTo(pts[0][0], pts[0][1]);
+    for (const [px, py] of pts.slice(1)) shape.lineTo(px, py);
     shape.closePath();
     const geo = new THREE.ExtrudeGeometry(shape, { depth: DIM.wallExt, bevelEnabled: false });
     const mesh = new THREE.Mesh(geo, mats.plaster);
@@ -166,77 +175,80 @@ function buildRoof(unit, W, mats, { overhangLeft, overhangRight }) {
     mesh.receiveShadow = true;
     g.add(mesh);
 
-    // dark rake trim following the roof line
-    const rakeLen = (W / 2) / Math.cos(p);
-    const zt = z + (faceOut > 0 ? 0.35 : -0.35);
-    for (const side of [-1, 1]) {
-      g.add(
-        box(rakeLen, 0.55, 0.5, mats.trim, {
-          x: W / 2 + side * (W / 4),
-          y: (eaveY + ridgeY) / 2 + 0.1,
-          z: zt,
-          rz: side < 0 ? p : -p,
-        })
-      );
-    }
-    g.add(box(W, 0.5, 0.5, mats.trim, { x: W / 2, y: eaveY - 0.2, z: zt }));
+    // dark rake board following the slope
+    const run = x1 - x0;
+    g.add(
+      box(run / Math.cos(PITCH), 0.55, 0.5, mats.trim, {
+        x: F.X((x0 + x1) / 2),
+        y: (roofY(x0) + roofY(x1)) / 2 + 0.1,
+        z: z + (faceOut > 0 ? 0.35 : -0.35),
+        rz: F.mirror ? PITCH : -PITCH,
+      })
+    );
   };
-  gable(UPPER_DEPTH, 1);
-  gable(0, -1);
+  gable(Z.front, 0, W, 1);
+  gable(Z.rear, X.rc, W, -1);
 
-  g.userData.ridgeY = ridgeY;
-  void left;
-  void right;
+  // wall closing the gap above the RC roof, below the slope
+  const topY = roofY(X.rc);
+  g.add(
+    box(DIM.wallExt, topY - LEVEL.eaves, Z.a, mats.plaster, {
+      x: F.X(X.rc),
+      y: (LEVEL.eaves + topY) / 2,
+      z: Z.a / 2,
+    })
+  );
+
   return g;
 }
 
-/** Facade detailing: columns, banding, steps, service ledges. */
-function buildFacade(parent, upperParent, W, F, mats) {
+function buildFacade(groundG, upperG, F, mats) {
   const yG = LEVEL.ground;
-  const upperY = LEVEL.upper;
+  const under = LEVEL.upper - DIM.slab;
 
-  // porch columns supporting the cantilever
-  for (const x of [1.3, W - 1.3]) {
-    parent.add(
-      box(1.15, upperY - DIM.slab, 1.15, mats.plaster, {
-        x,
-        y: (upperY - DIM.slab) / 2,
-        z: UPPER_DEPTH - 1.1,
-      })
-    );
+  // house platform
+  groundG.add(
+    box(W, yG, BUILT + 1.2, mats.slab, { x: F.X(W / 2), y: yG / 2, z: (BUILT + 1.2) / 2 })
+  );
+
+  // porch columns carrying the balcony slab
+  for (const x of [1.6, W / 2, W - 1.6]) {
+    groundG.add(box(1.3, under, 1.3, mats.plaster, { x: F.X(x), y: under / 2, z: Z.porch - 1 }));
   }
+  groundG.add(box(1.3, under, 1.3, mats.plaster, { x: F.X(W - 1.6), y: under / 2, z: Z.front + 3 }));
 
-  // dark band between the two storeys (brochure facade accent) - belongs to
-  // the first floor so it disappears with it in the ground floor plan view
-  upperParent.add(box(W, 1.1, 0.45, mats.charcoal, { x: W / 2, y: upperY - 0.2, z: UPPER_DEPTH + 0.18 }));
-  upperParent.add(box(W, 0.9, 0.4, mats.charcoal, { x: W / 2, y: upperY - 0.2, z: DIM.builtUp + 0.2 }));
-
-  // entrance steps up to the raised platform
-  const doorX = F.X(4.25);
+  // entrance steps
   for (let i = 0; i < 2; i++) {
-    parent.add(
-      box(6, yG / 2, 1.2 - i * 0.35, mats.slab, {
-        x: doorX,
-        y: (yG / 2) * (i + 0.5) - yG / 2 + yG / 2,
-        z: DIM.builtUp + 1.6 - i * 0.9,
+    groundG.add(
+      box(7, yG / 2, 1.3 - i * 0.35, mats.slab, {
+        x: F.X(5.8),
+        y: (yG / 2) * (i + 0.5),
+        z: Z.front + 1.7 - i * 0.95,
       })
     );
   }
 
-  // house platform + porch threshold
-  parent.add(box(W, yG, DIM.builtUp + 1.2, mats.slab, { x: W / 2, y: yG / 2, z: (DIM.builtUp + 1.2) / 2 }));
+  // banding between the storeys
+  upperG.add(box(W, 1.1, 0.45, mats.charcoal, { x: F.X(W / 2), y: LEVEL.upper - 0.2, z: Z.porch + 0.2 }));
+  upperG.add(
+    box(0.45, 1.1, TOTAL_DEPTH - Z.a, mats.charcoal, {
+      x: F.X(W + 0.2),
+      y: LEVEL.upper - 0.2,
+      z: (Z.a + TOTAL_DEPTH) / 2,
+    })
+  );
 
-  // air-conditioner ledge at the rear
-  upperParent.add(box(3.2, 0.4, 2, mats.plasterShade, { x: F.X(18), y: upperY + 3, z: -1 }));
-  upperParent.add(box(2.4, 2, 1.6, mats.metal, { x: F.X(18), y: upperY + 4.2, z: -1 }));
+  // air-conditioner condensers on the flat RC roof (as drawn on the plan)
+  for (const x of [1.8, 4.2]) {
+    upperG.add(box(2, 0.35, 1.8, mats.plasterShade, { x: F.X(x), y: LEVEL.upper + 0.2, z: 2.4 }));
+    upperG.add(box(1.8, 1.8, 1.5, mats.metal, { x: F.X(x), y: LEVEL.upper + 1.2, z: 2.4 }));
+  }
 }
 
-/**
- * @param {object} o { width, mirror, isLast, isFirst, mats, unitLabel }
- */
+/** @param {object} o { mirror, mats } */
 export function buildUnit(o) {
-  const { width: W, mirror, isFirst, isLast, mats } = o;
-  const F = frameFor(W, mirror);
+  const { mirror, mats } = o;
+  const F = frameFor(mirror);
   const unit = new THREE.Group();
 
   const groundG = new THREE.Group();
@@ -245,50 +257,34 @@ export function buildUnit(o) {
   const labelGroundG = new THREE.Group();
   const labelUpperG = new THREE.Group();
   labelG.add(labelGroundG, labelUpperG);
-  const furniture = [];
   labelG.visible = false;
+  const furniture = [];
+
+  const mx = (a, b) => F.X((a + b) / 2);
 
   // ---- ground floor ------------------------------------------------------
-  buildFacade(groundG, upperG, W, F, mats);
+  buildFacade(groundG, upperG, F, mats);
   groundG.add(
-    box(W - 0.8, 0.12, DIM.builtUp - 0.8, mats.interiorFloor, {
-      x: W / 2,
+    box(W - 0.8, 0.12, BUILT - 0.8, mats.interiorFloor, {
+      x: mx(0, W),
       y: LEVEL.ground + 0.06,
-      z: DIM.builtUp / 2,
+      z: BUILT / 2,
       cast: false,
     })
   );
-  addFloor(groundG, GROUND, F, { baseY: LEVEL.ground, mats });
+  addFloor(groundG, GROUND, F, LEVEL.ground, mats);
   stairs(
     groundG,
-    { x1: F.mirror ? W - 4 * F.sx : 0, z1: GROUND.stair.z1, x2: F.mirror ? W : 4 * F.sx, z2: GROUND.stair.z2 },
+    {
+      x1: Math.min(F.X(0.3), F.X(X.rc - 0.3)),
+      z1: GROUND.stair.z1,
+      x2: Math.max(F.X(0.3), F.X(X.rc - 0.3)),
+      z2: GROUND.stair.z2,
+    },
     mats,
     { fromY: LEVEL.ground, toY: LEVEL.upper }
   );
   addFurniture(groundG, GROUND.furniture, F, LEVEL.ground + 0.12, mats, furniture);
-
-  // ---- party walls (shared, centred on the lot boundary) -----------------
-  // split per storey so each half hides with its floor in the plan views
-  const party = (x) => {
-    const lowerH = LEVEL.upper - LEVEL.ground;
-    const upperH = LEVEL.eaves - LEVEL.upper;
-    groundG.add(
-      box(DIM.wallExt, lowerH, DIM.builtUp, mats.plaster, {
-        x,
-        y: LEVEL.ground + lowerH / 2,
-        z: DIM.builtUp / 2,
-      })
-    );
-    upperG.add(
-      box(DIM.wallExt, upperH, UPPER_DEPTH, mats.plaster, {
-        x,
-        y: LEVEL.upper + upperH / 2,
-        z: UPPER_DEPTH / 2,
-      })
-    );
-  };
-  party(0);
-  if (isLast) party(W);
 
   // ---- first floor -------------------------------------------------------
   const voids = UPPER.voids.map((v) => ({
@@ -297,25 +293,53 @@ export function buildUnit(o) {
     z1: v.z1,
     z2: v.z2,
   }));
-  slab(upperG, { x1: 0, z1: 0, x2: W, z2: UPPER_DEPTH }, voids, LEVEL.upper, DIM.slab, mats.slab);
-  slab(
-    upperG,
-    { x1: 0.4, z1: 0.4, x2: W - 0.4, z2: UPPER_DEPTH - 0.4 },
-    voids,
-    LEVEL.upper + 0.12,
-    0.12,
-    mats.interiorFloor
+  for (const p of UPPER.plate) {
+    const rect = { x1: Math.min(F.X(p.x1), F.X(p.x2)), x2: Math.max(F.X(p.x1), F.X(p.x2)), z1: p.z1, z2: p.z2 };
+    slab(upperG, rect, voids, LEVEL.upper, DIM.slab, mats.slab);
+    slab(
+      upperG,
+      { x1: rect.x1 + 0.4, x2: rect.x2 - 0.4, z1: rect.z1 + 0.4, z2: rect.z2 - 0.4 },
+      voids,
+      LEVEL.upper + 0.12,
+      0.12,
+      mats.interiorFloor
+    );
+  }
+
+  // flat RC roof over the single storey rear strip, with its parapet
+  const rc = UPPER.rcRoof;
+  upperG.add(
+    box(X.rc, DIM.slab, Z.a, mats.slab, { x: mx(rc.x1, rc.x2), y: LEVEL.upper - DIM.slab / 2, z: Z.a / 2 })
   );
-  addFloor(upperG, UPPER, F, { baseY: LEVEL.upper, mats });
+  upperG.add(
+    box(X.rc, DIM.parapet, 0.5, mats.plaster, { x: mx(rc.x1, rc.x2), y: LEVEL.upper + DIM.parapet / 2, z: 0.25 })
+  );
+
+  // balcony slab over the car porch
+  const bal = UPPER.balcony;
+  upperG.add(
+    box(W, DIM.slab, DIM.front, mats.slab, {
+      x: mx(bal.x1, bal.x2),
+      y: LEVEL.upper - DIM.slab / 2,
+      z: (Z.front + Z.porch) / 2,
+    })
+  );
+  upperG.add(
+    box(W - 0.6, 0.12, DIM.front - 0.6, mats.paver, {
+      x: mx(bal.x1, bal.x2),
+      y: LEVEL.upper + 0.06,
+      z: (Z.front + Z.porch) / 2,
+      cast: false,
+    })
+  );
+
+  addFloor(upperG, UPPER, F, LEVEL.upper, mats);
   addFurniture(upperG, UPPER.furniture, F, LEVEL.upper + 0.12, mats, furniture);
 
   // ---- roof --------------------------------------------------------------
-  const roofG = buildRoof(unit, W, mats, {
-    overhangLeft: isFirst ? DIM.roofEaveOverhang : 0.35,
-    overhangRight: isLast ? DIM.roofEaveOverhang : 0.35,
-  });
+  const roofG = buildRoof(mats, F);
 
-  // ---- plan labels -------------------------------------------------------
+  // ---- labels ------------------------------------------------------------
   addLabels(labelGroundG, GROUND.rooms, F, LEVEL.ground + 6.5, 0.62);
   addLabels(labelUpperG, UPPER.rooms, F, LEVEL.upper + 6.5, 0.62);
 
@@ -328,7 +352,7 @@ export function buildUnit(o) {
     labelsGround: labelGroundG,
     labelsUpper: labelUpperG,
     furniture,
-    width: W,
+    mirror,
   };
   return unit;
 }

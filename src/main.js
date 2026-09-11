@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import { FT, ft, DIM, LEVEL } from './config.js';
+import { FT, ft, DIM, LEVEL, Z, TOTAL_DEPTH } from './config.js';
 import { createMaterials, litGlass } from './materials.js';
-import { buildTerrace } from './terrace.js';
+import { buildEstate } from './estate.js';
 import { buildSite } from './site.js';
 import { createSky } from './sky.js';
 import { disposeTree } from './build.js';
@@ -16,10 +16,9 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xcfe0ee, 120, 620);
+scene.fog = new THREE.Fog(0xcfe0ee, 150, 750);
 
 const camera = new THREE.PerspectiveCamera(50, 1, 0.5, 6000);
 const controls = new OrbitControls(camera, canvas);
@@ -27,7 +26,7 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.maxPolarAngle = Math.PI / 2 - 0.02;
 controls.minDistance = 3;
-controls.maxDistance = 400;
+controls.maxDistance = 500;
 
 // ---------------------------------------------------------------- lighting
 const sky = createSky();
@@ -36,26 +35,25 @@ scene.add(sky.mesh);
 const hemi = new THREE.HemisphereLight(0xbfd8f2, 0x6d7a5a, 1.0);
 scene.add(hemi);
 
+const ambient = new THREE.AmbientLight(0xffffff, 0.18);
+scene.add(ambient);
+
 const sun = new THREE.DirectionalLight(0xfff1dc, 2.6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.bias = -0.0006;
 sun.shadow.normalBias = 0.05;
-scene.add(sun);
-scene.add(sun.target);
-
-const ambient = new THREE.AmbientLight(0xffffff, 0.18);
-scene.add(ambient);
+scene.add(sun, sun.target);
 
 // two lamps switched on only for the interior walk-through
 const interiorLights = [0, 1].map(() => {
-  const l = new THREE.PointLight(0xffe3bd, 0, ft(45), 2);
+  const l = new THREE.PointLight(0xffe3bd, 0, ft(50), 2);
   scene.add(l);
   return l;
 });
 
 const fill = new THREE.DirectionalLight(0xa9c6e8, 0.35);
-fill.position.set(-60, 40, -80);
+fill.position.set(-80, 50, -100);
 scene.add(fill);
 
 // -------------------------------------------------------------- the model
@@ -65,43 +63,40 @@ model.scale.setScalar(FT); // authored in feet, displayed in metres
 scene.add(model);
 
 const state = {
-  units: 6,
+  pairs: 2,
   roof: true,
   upper: true,
   labels: false,
   furniture: true,
   hour: 15,
   totalWidth: 0,
-  focusUnit: 0,
+  focusUnit: 1,
   interior: false,
 };
 
-let terrace = null;
+let estate = null;
 let site = null;
+let ui = null;
 
-function build(count) {
-  if (terrace) {
-    model.remove(terrace.group);
-    disposeTree(terrace.group);
+function build(pairCount) {
+  for (const old of [estate?.group, site]) {
+    if (!old) continue;
+    model.remove(old);
+    disposeTree(old);
   }
-  if (site) {
-    model.remove(site);
-    disposeTree(site);
-  }
-  const built = buildTerrace(count, mats);
-  terrace = built;
-  model.add(built.group);
-  site = buildSite(mats, built.row);
+  estate = buildEstate(pairCount, mats);
+  model.add(estate.group);
+  site = buildSite(mats, estate.row);
   model.add(site);
-  state.totalWidth = built.row.totalWidth;
-  const mid = Math.floor(count / 2);
-  state.focusUnit = Math.max(0, mid - (mid % 2)); // even index = unmirrored plan
+  state.totalWidth = estate.row.totalWidth;
+  // annotate an unmirrored half, so the labelled plan reads like the drawing
+  state.focusUnit = 1;
   applyToggles();
   frameShadows();
 }
 
 function eachUnit(fn) {
-  terrace?.row.units.forEach(({ unit }, i) => fn(unit.userData, i));
+  estate?.row.units.forEach(({ unit }, i) => fn(unit.userData, i));
 }
 
 function applyToggles() {
@@ -114,13 +109,14 @@ function applyToggles() {
     u.labelsUpper.visible = state.upper;
     u.furniture.forEach((f) => (f.visible = state.furniture));
   });
+  estate?.row.pairs.forEach((p) => (p.roofShared.visible = state.roof));
   ambient.intensity = state.interior ? 0.24 : 0.18;
-  setHour(state.hour);
   interiorLights.forEach((l) => (l.intensity = state.interior ? 45 : 0));
+  setHour(state.hour);
 }
 
 function frameShadows() {
-  const w = ft(state.totalWidth) / 2 + 30;
+  const w = ft(state.totalWidth) / 2 + 40;
   const cam = sun.shadow.camera;
   cam.left = -w;
   cam.right = w;
@@ -134,19 +130,17 @@ function frameShadows() {
 // --------------------------------------------------------- time of day
 function setHour(h) {
   state.hour = h;
-  const centre = new THREE.Vector3(ft(state.totalWidth / 2), 0, ft(20));
-  // 6h -> sunrise (east), 18h -> sunset (west)
+  const centre = new THREE.Vector3(ft(state.totalWidth / 2), 0, ft(28));
   const t = (h - 6) / 12; // 0..1 across the day
   const elev = Math.sin(Math.PI * t) * 72 * (Math.PI / 180);
   const azim = (-100 + t * 200) * (Math.PI / 180);
-  const r = ft(260);
   const dir = new THREE.Vector3(
     Math.sin(azim) * Math.cos(elev),
     Math.max(Math.sin(elev), -0.25),
     Math.cos(azim) * Math.cos(elev) * 0.9 + 0.25
   ).normalize();
 
-  sun.position.copy(centre).addScaledVector(dir, r);
+  sun.position.copy(centre).addScaledVector(dir, ft(320));
   sun.target.position.copy(centre);
   sun.target.updateMatrixWorld();
 
@@ -171,11 +165,17 @@ function setHour(h) {
   const lit = night ? 1 : dusk * 0.55;
   litGlass.forEach((g) => (g.emissiveIntensity = lit));
   mats.lampGlow.emissiveIntensity = night ? 1.4 : dusk * 0.8;
-  mats.carGlass.emissiveIntensity = 0;
 }
 
 // ------------------------------------------------------------- camera views
-const flight = { active: false, t: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), fromT: new THREE.Vector3(), toT: new THREE.Vector3() };
+const flight = {
+  active: false,
+  t: 0,
+  from: new THREE.Vector3(),
+  to: new THREE.Vector3(),
+  fromT: new THREE.Vector3(),
+  toT: new THREE.Vector3(),
+};
 
 function flyTo(pos, target, instant = false) {
   if (instant) {
@@ -196,10 +196,11 @@ const V = (x, y, z) => new THREE.Vector3(ft(x), ft(y), ft(z));
 
 function view(name, instant = false) {
   const cx = state.totalWidth / 2;
-  const focus = terrace.row.units[state.focusUnit];
-  // plan views frame the annotated unit and its neighbours, not the whole row
-  const planDist = 150;
-  const planX = focus.x + focus.width / 2;
+  const focus = estate.row.units[state.focusUnit];
+  const sign = focus.mirror ? -1 : 1;
+  const inner = focus.x;                                   // party wall
+  const unitMid = inner + (sign * DIM.unitWidth) / 2;      // middle of the unit
+  const planDist = 190;
   const fov = { street: 50, facade: 45, aerial: 50, cutaway: 45, ground: 26, upper: 26, interior: 68 };
   camera.fov = fov[name] ?? 50;
   camera.updateProjectionMatrix();
@@ -207,34 +208,37 @@ function view(name, instant = false) {
   switch (name) {
     case 'street':
       setMode({ roof: true, upper: true, labels: false, interior: false });
-      flyTo(V(cx - 55, 24, 132), V(cx - 6, 12, 30), instant);
+      flyTo(V(cx - 78, 30, 168), V(cx - 12, 16, 44), instant);
       break;
     case 'facade':
       setMode({ roof: true, upper: true, labels: false, interior: false });
-      flyTo(V(cx, 20, 118), V(cx, 15, 36), instant);
+      flyTo(V(focus.x, 30, 205), V(focus.x, 17, 54), instant);
       break;
     case 'aerial':
       setMode({ roof: true, upper: true, labels: false, interior: false });
-      flyTo(V(cx + 95, 120, 175), V(cx, 6, 22), instant);
+      flyTo(V(cx + 120, 150, 215), V(cx, 8, 30), instant);
       break;
     case 'cutaway':
       setMode({ roof: false, upper: true, labels: true, interior: false });
-      flyTo(V(cx - 70, 78, 138), V(cx - 4, 8, 26), instant);
+      flyTo(V(cx - 92, 96, 176), V(cx - 8, 10, 32), instant);
       break;
     case 'ground':
       setMode({ roof: false, upper: false, labels: true, interior: false });
-      flyTo(V(planX, planDist * 0.96, 24 + planDist * 0.26), V(planX, 0, 24), instant);
+      flyTo(V(unitMid, planDist * 0.96, 30 + planDist * 0.26), V(unitMid, 0, 30), instant);
       break;
     case 'upper':
       setMode({ roof: false, upper: true, labels: true, interior: false });
-      flyTo(V(planX, planDist * 0.96, 24 + planDist * 0.26), V(planX, 0, 24), instant);
+      flyTo(V(unitMid, planDist * 0.96, 30 + planDist * 0.26), V(unitMid, 0, 30), instant);
       break;
     case 'interior': {
       setMode({ roof: true, upper: true, labels: false, interior: true });
-      const x = focus.x + focus.width / 2;
-      interiorLights[0].position.set(ft(x), ft(LEVEL.ground + 8.5), ft(29));
-      interiorLights[1].position.set(ft(x), ft(LEVEL.ground + 8.5), ft(17));
-      flyTo(V(x - 1, LEVEL.ground + 5.4, 32.8), V(x, LEVEL.ground + 4, 10), instant);
+      interiorLights[0].position.set(ft(unitMid), ft(LEVEL.ground + 8.5), ft(Z.c + 9));
+      interiorLights[1].position.set(ft(unitMid), ft(LEVEL.ground + 8.5), ft(Z.b + 4));
+      flyTo(
+        V(unitMid + sign * 6, LEVEL.ground + 5.4, Z.front - 2.5),
+        V(unitMid - sign * 2, LEVEL.ground + 4.2, Z.a + 4),
+        instant
+      );
       break;
     }
   }
@@ -250,16 +254,14 @@ function setMode({ roof, upper, labels, interior }) {
 }
 
 // ------------------------------------------------------------------ startup
-let ui = null;
-
-build(state.units);
+build(state.pairs);
 setHour(state.hour);
 view('street', true);
 
 ui = initUI({
   state,
-  setUnits(n) {
-    state.units = n;
+  setPairs(n) {
+    state.pairs = n;
     build(n);
     view('street');
   },
@@ -307,5 +309,4 @@ tick();
 
 document.getElementById('loading')?.remove();
 
-// expose for console tinkering
-window.dreamHouse = { renderer, scene, camera, controls, state, view, setHour, DIM, LEVEL, ft };
+window.dreamHouse = { renderer, scene, camera, controls, state, view, setHour, DIM, LEVEL, Z, TOTAL_DEPTH, ft };
