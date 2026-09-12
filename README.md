@@ -6,6 +6,9 @@ illustrated 3D dollhouse you can walk around, light up and read.
 Two floors, twenty rooms, 30' × 48' per floor (2,400 sq ft built-up), designed in a
 cream "Japandi" palette — oak, oat, clay and sage.
 
+The model contains three dedicated bedrooms, a study with a daybed, and three
+bathrooms. The 2,400 sq ft figure excludes the porch and balcony.
+
 ```bash
 python3 -m http.server 8080     # or: npx http-server -p 8080
 # then open http://localhost:8080
@@ -16,19 +19,29 @@ python3 -m http.server 8080     # or: npx http-server -p 8080
 ## What's in it
 
 **Walkthrough** — the isometric dollhouse. Click a room (or its label, or a chip)
-and the camera eases in, the room lifts out of the palette and the card on the right
-tells you what it's made of. `Full walls` raises the walls to full height and glazes the
-windows; `Furniture` strips the furniture out to read the plan.
+and the camera eases in, the room lifts out of the palette and the detail panel
+shows its material palette. The previous/next buttons browse every room on the current
+floor. `Walls` raises the walls to full height and glazes the windows; `Furniture`
+toggles furnishings; `Labels` clears the annotations for an unobstructed view.
 
 **Design notes** — the design brief, room by room: the idea, the materials,
-and how each space is lit.
+and how each space is lit. Each material study includes a floor locator drawn from
+the room coordinates. `Read the design story` opens the selected room's article;
+`Explore this room` returns to its 3D view.
 
-**Floor plan** — straight down, walls cut, labels on.
+**Floor plan** — a top-down view that preserves your wall, furniture, and label settings.
+Drag to pan; room and floor changes keep the top-down orientation.
 
 **The day** — the slider runs 05:00 to 23:00. The sun swings round and changes colour,
 lamps warm up at dusk, the whole interface turns to evening, and Ethan and Mia move
 through the house on their own timetable — coffee at the island at 08:24, sunbathing on
 the balcony at two, a film on the sofa at eight. Weather (☀️ ☁️ 🌧️) re-lights the scene.
+Morning, Golden hour, and After dark presets pause playback and set a specific time.
+
+The interface pairs self-hosted Cormorant and Manrope fonts with abstract CSS material
+samples. These samples illustrate material categories, not exact product finishes.
+Font licenses are included in `assets/fonts/`. Entry and camera animations respect
+the device's reduced-motion preference.
 
 ## The design
 
@@ -48,6 +61,10 @@ all its furniture to the walls to leave the floor free.
 Every room's note, palette and furniture list lives in `src/design.js` — that single
 file is the design document, and the model is generated from it.
 
+See [the interior design review](docs/interior-design-review.md) for measured
+circulation conflicts, room-access issues, and the proposed order of revisions.
+The existing plan is a concept study with unresolved spatial coordination.
+
 ## How it is built
 
 ```
@@ -58,7 +75,10 @@ src/furniture.js    35 pieces of furniture, all soft-cornered
 src/house.js        assembles one floor: plinth, floors, walls, windows, furniture
 src/people.js       Ethan and Mia
 src/labels.js       HTML room labels pinned to the model
+src/materials.js    material studies and room-location diagrams
+src/styles.css      typography, textures, responsive layout and motion
 src/main.js         scene, camera, day cycle, interaction
+assets/fonts/       self-hosted fonts and SIL Open Font Licenses
 vendor/three/       three.js r169 (module build, OrbitControls, RoundedBoxGeometry)
 ```
 

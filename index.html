@@ -10,6 +10,8 @@
 <meta property="og:description" content="A home, in every light. Explore rooms, materials, and floor plans." />
 <meta property="og:image" content="./preview.png" />
 <meta name="twitter:card" content="summary_large_image" />
+<link rel="preload" href="./assets/fonts/cormorant-regular.ttf" as="font" type="font/ttf" crossorigin />
+<link rel="preload" href="./assets/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossorigin />
 <link rel="stylesheet" href="./src/styles.css" />
 </head>
 <body>
@@ -37,8 +39,8 @@
     <div class="info-panel" id="info-panel">
       <div class="hero" id="hero">
         <div class="eyebrow">Semi-detached · 2,400 sq ft</div>
-        <h2>A home,<br>in every light.</h2>
-        <p>Quiet corners. Shared spaces.<br>A little room for everyday life.</p>
+        <h2>A home,<br>in every <em>light.</em></h2>
+        <p>Natural textures, quiet corners,<br>and space for the everyday.</p>
       </div>
       <aside class="detail" id="detail" aria-label="Room details"></aside>
       <div class="panel-foot"><span class="status-dot"></span><span>Two floors. One place to call home.</span></div>
@@ -47,16 +49,20 @@
       <canvas id="view" aria-label="Interactive 3D house. Use the room buttons to explore without dragging."></canvas>
       <div id="labels"></div>
       <div class="view-caption"><span id="view-floor">Ground floor</span><span id="view-mode">Isometric view</span></div>
-      <div class="view-index" aria-hidden="true">SH / 01</div>
+      <div class="room-browser" role="group" aria-label="Browse rooms">
+        <span id="room-position" aria-live="polite">10 spaces</span>
+        <button id="room-prev" aria-label="Previous room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+        <button id="room-next" aria-label="Next room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
       <div class="walkhint" id="walkhint">Drag to orbit <span>·</span> Scroll to zoom <span>·</span> Select a room to explore</div>
       <div class="dock" id="dock" role="group" aria-label="Model controls">
-        <button id="btn-reset" title="Reset camera"><span aria-hidden="true">↺</span> Reset</button>
+        <button id="btn-reset" title="Reset camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg> Reset</button>
         <span class="div"></span>
-        <button id="btn-walls" aria-pressed="false"><span aria-hidden="true">▥</span> Walls</button>
-        <button id="btn-furniture" class="is-on" aria-pressed="true"><span aria-hidden="true">▤</span> Furniture</button>
-        <button id="btn-labels" class="is-on" aria-pressed="true"><span aria-hidden="true">⌗</span> Labels</button>
+        <button id="btn-walls" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V5l8-2 8 2v15l-8-2-8 2Zm8-17v15"/></svg> Walls</button>
+        <button id="btn-furniture" class="is-on" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M4 17v3m16-3v3M3 11h3v4h12v-4h3v7H3Z"/></svg> Furniture</button>
+        <button id="btn-labels" class="is-on" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v13H9l-5 4v-4H3ZM7 9h10m-10 4h6"/></svg> Labels</button>
         <span class="div"></span>
-        <button id="btn-top" title="Return to the whole house"><span aria-hidden="true">⌂</span> Overview</button>
+        <button id="btn-top" title="Return to the whole house"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 9v12h14V9M9 21v-7h6v7"/></svg> Overview</button>
       </div>
     </div>
     <section class="notes hidden" id="notes" aria-label="Room design notes"></section>
@@ -64,6 +70,7 @@
   <footer class="timebar" aria-label="Daylight simulation">
     <div class="now"><div class="eyebrow">Light through the day</div><div><b id="clock2">08:24</b><span id="phase2">Soft morning light</span></div></div>
     <div class="timeline">
+      <div class="light-presets" role="group" aria-label="Lighting moments"><span>Set the mood</span><button data-hour="8.4" aria-pressed="true">Morning</button><button data-hour="17.5" aria-pressed="false">Golden hour</button><button data-hour="21" aria-pressed="false">After dark</button></div>
       <div class="track">
         <button class="play" id="play" aria-label="Play daylight simulation" aria-pressed="false">▶</button>
         <div class="range-wrap"><input type="range" id="time" min="5" max="23" step="0.1" value="8.4" aria-label="Time of day" /><div class="marks" aria-hidden="true"><span>05:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div></div>

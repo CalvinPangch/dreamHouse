@@ -6,6 +6,7 @@ import { buildFloor } from './house.js';
 import { lamps } from './furniture.js';
 import { createPeople, scheduleAt } from './people.js';
 import { createLabels, updateLabels } from './labels.js';
+import { materialBoard, roomLocator } from './materials.js';
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#view');
@@ -179,16 +180,18 @@ function sizeOf(d) {
 
 function renderDetail(d) {
   const el = $('#detail');
+  const rooms = floors.get(state.floor).def.rooms;
+  const index = d ? rooms.findIndex(r => r.id === d.id) : -1;
+  $('#room-position').textContent = d ? `${String(index + 1).padStart(2, '0')} / ${String(rooms.length).padStart(2, '0')}` : `${rooms.length} spaces`;
+  $('#info-panel').classList.toggle('has-room', !!d);
+  $('#view-mode').textContent = d ? d.name : state.tab === 'plan' ? 'Top-down view' : 'Isometric view';
   if (!d) {
     el.innerHTML = `
-      <span class="room-index">The whole house</span>
-      <h3>Room to live.<small>4 BEDROOMS · 4 BATHROOMS</small></h3>
-      <p class="mood">From the first coffee to the last light. Explore the spaces that make a home.</p>
-      <button class="go" id="go">Explore ${state.floor === 'ground' ? 'ground' : 'upper'} floor <span aria-hidden="true">→</span></button>
-      <div class="sep"></div>
-      <div class="lede">WHAT'S INSIDE</div>
-      <div class="floor-summary"><span class="number">01</span><b>Ground floor</b><span class="description">Living, dining, kitchen & study</span></div>
-      <div class="floor-summary"><span class="number">02</span><b>Upper floor</b><span class="description">Bedrooms, wardrobe & family space</span></div>`;
+      <div class="house-facts"><div><b>02</b><span>Floors</span></div><div><b>03</b><span>Bedrooms + study</span></div><div><b>03</b><span>Bathrooms</span></div></div>
+      <button class="go" id="go">Explore ${state.floor === 'ground' ? 'ground' : 'upper'} floor <span aria-hidden="true">↗</span></button>
+      <div class="palette-heading"><span class="lede">THE MATERIAL STORY</span><span>01—03</span></div>
+      ${materialBoard(['Natural oak', 'Soft linen', 'Warm stone'])}
+      <p class="palette-note">A warm, tactile palette. Made for living.</p>`;
     $('#go')?.addEventListener('click', () => {
       const first = floors.get(state.floor).def.rooms[0];
       selectRoom(first.id);
@@ -200,9 +203,10 @@ function renderDetail(d) {
     <h3>${d.name} <small>${sizeOf(d)}</small></h3>
     <p class="mood">${d.mood}</p>
     <button class="go" id="go">Look closer <span aria-hidden="true">↗</span></button>
+    ${materialBoard(d.materials || [])}
+    <button class="read-story" id="read-story">Read the design story <span aria-hidden="true">↗</span></button>
     <div class="sep"></div>
-    <div class="lede">IN THIS ROOM</div>
-    <div class="row"><span class="ico" aria-hidden="true">◇</span><b>${(d.materials || [])[0] || 'In design'}</b></div>
+    <div class="lede">SCENE SETTINGS</div>
     <div class="row"><span class="ico" aria-hidden="true">☼</span><b>House lights</b>
       <button class="switch ${state.roomLight ? 'is-on' : ''}" id="sw-light" aria-label="House lights" aria-pressed="${state.roomLight}"></button></div>
     <div class="row"><span class="ico">▦</span><b>Full walls</b>
@@ -224,6 +228,12 @@ function renderDetail(d) {
     state.walls = !state.walls;
     applyDisplay();
   });
+  $('#read-story').addEventListener('click', () => {
+    setTab('notes');
+    const story = $('#notes').querySelector(`[data-story="${d.id}"]`);
+    story.scrollIntoView({ block: 'start', behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+    story.querySelector('button').focus({ preventScroll: true });
+  });
 }
 
 function buildChips() {
@@ -240,6 +250,8 @@ function buildChips() {
     wrap.appendChild(b);
     if (focusedRoom === r.id) b.focus({ preventScroll: true });
   }
+  const active = wrap.querySelector('.is-on');
+  if (active) wrap.scrollLeft = active.offsetLeft - wrap.offsetLeft - wrap.clientWidth / 2 + active.clientWidth / 2;
 }
 
 /* -------------------------------------------------------------- the notes */
@@ -249,14 +261,16 @@ function renderNotes() {
   for (const r of floors.get(state.floor).def.rooms) {
     const card = document.createElement('article');
     card.className = 'note';
+    card.dataset.story = r.id;
     card.innerHTML = `
-      <div class="tag" style="background:${r.accent}"></div>
+      <div class="note-visual">${materialBoard(r.materials || [], true)}${roomLocator(r, floors.get(state.floor).def)}</div>
+      <div class="note-copy">
       <h3>${r.name}<small>${sizeOf(r)}</small></h3>
       <div class="mood">${r.mood}</div>
       <p>${r.note}</p>
       <ul>${(r.materials || []).map((m) => `<li>${m}</li>`).join('')}</ul>
       <div class="light">${r.light || ''}</div>
-      <button class="note-link" aria-label="Explore ${r.name}">Explore this room <span aria-hidden="true">↗</span></button>`;
+      <button class="note-link" aria-label="Explore ${r.name}">Explore this room <span aria-hidden="true">↗</span></button></div>`;
     card.querySelector('button').addEventListener('click', () => {
       setTab('roam');
       selectRoom(r.id);
@@ -362,6 +376,7 @@ function setHour(h) {
   $('#phase2').textContent = phaseOf(h);
   $('#time').value = String(h);
   $('#time').setAttribute('aria-valuetext', `${clock}, ${phaseOf(h)}`);
+  document.querySelectorAll('[data-hour]').forEach(b => setPressed(b, Math.abs(h - Number(b.dataset.hour)) < 0.15));
 
   placePeople();
 }
@@ -423,6 +438,14 @@ canvas.addEventListener('pointerup', (e) => {
 document.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
 document.querySelectorAll('[data-floor]').forEach((b) => b.addEventListener('click', () => showFloor(b.dataset.floor)));
 $('#btn-reset').addEventListener('click', resetView);
+function browseRoom(direction) {
+  const rooms = floors.get(state.floor).def.rooms;
+  const index = rooms.findIndex(r => r.id === state.room);
+  const next = index < 0 ? (direction > 0 ? 0 : rooms.length - 1) : (index + direction + rooms.length) % rooms.length;
+  selectRoom(rooms[next].id);
+}
+$('#room-prev').addEventListener('click', () => browseRoom(-1));
+$('#room-next').addEventListener('click', () => browseRoom(1));
 $('#btn-top').addEventListener('click', () => {
   state.room = null;
   for (const [, r] of floors.get(state.floor).rooms) r.plate.material.color.copy(r.plate.userData.baseColor);
@@ -436,6 +459,10 @@ $('#btn-labels').addEventListener('click', () => {
   labelLayer.classList.toggle('hidden', !state.labels);
 });
 $('#time').addEventListener('input', (e) => setHour(Number(e.target.value)));
+document.querySelectorAll('[data-hour]').forEach(b => b.addEventListener('click', () => {
+  if (state.playing) $('#play').click();
+  setHour(Number(b.dataset.hour));
+}));
 $('#play').addEventListener('click', () => {
   state.playing = !state.playing;
   $('#play').textContent = state.playing ? '❚❚' : '▶';

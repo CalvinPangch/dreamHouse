@@ -193,7 +193,7 @@ const UPPER = [
   {
     id: 'masterbath', name: "Master Bath", en: 'Master Bath', mood: "Put the bathtub by the window",
     x1: 19, z1: 26, x2: 30, z2: 40, accent: TONE.mist, floor: '#e6ded2',
-    note: "The freestanding tub sits at the window and the two basins stand apart. Fluted glass screens the shower, and the floor falls 1% to the drain so the steam clears quickly.",
+    note: "The freestanding tub is intended to sit by the window, with two separate basin positions. Fluted glass screens the shower. Floor falls handle water drainage; ventilation handles moisture and steam.",
     materials: ["Micro-cement", "Freestanding tub", "Fluted glass"],
     light: "Mirror light plus anti-fog downlights",
     furniture: [
