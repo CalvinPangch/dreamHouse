@@ -10,6 +10,12 @@ import { createLabels, updateLabels } from './labels.js';
 const $ = (s) => document.querySelector(s);
 const canvas = $('#view');
 const labelLayer = $('#labels');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function setPressed(button, on) {
+  if (!button) return;
+  button.classList.toggle('is-on', on);
+  button.setAttribute('aria-pressed', String(on));
+}
 
 /* ------------------------------------------------------------- renderer */
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -80,6 +86,7 @@ const state = {
   tab: 'roam',
   walls: false,
   furniture: true,
+  labels: true,
   hour: 8.4,
   playing: false,
   speed: 24,
@@ -97,7 +104,8 @@ const fly = { on: false, t: 0, dur: 0.9, fromT: new THREE.Vector3(), toT: new TH
 
 function flyTo(target, zoom, dir = ISO_DIR, instant = false) {
   const pos = target.clone().addScaledVector(dir, 60);
-  if (instant) {
+  if (instant || reducedMotion.matches) {
+    fly.on = false;
     controls.target.copy(target);
     camera.position.copy(pos);
     camera.zoom = zoom;
@@ -125,7 +133,9 @@ function showFloor(id) {
   placePeople(true);
   renderDetail(null);
   resetView();
-  document.querySelectorAll('[data-floor]').forEach((b) => b.classList.toggle('is-on', b.dataset.floor === id));
+  document.querySelectorAll('[data-floor]').forEach((b) => setPressed(b, b.dataset.floor === id));
+  $('#view-floor').textContent = id === 'ground' ? 'Ground floor' : 'Upper floor';
+  if (state.tab === 'notes') renderNotes();
 }
 
 function applyDisplay() {
@@ -135,12 +145,14 @@ function applyDisplay() {
     f.glazing.visible = state.walls;
     f.furniture.visible = state.furniture;
   }
-  $('#btn-walls').classList.toggle('is-on', state.walls);
-  $('#btn-furniture').classList.toggle('is-on', state.furniture);
+  setPressed($('#btn-walls'), state.walls);
+  setPressed($('#sw-walls'), state.walls);
+  setPressed($('#btn-furniture'), state.furniture);
 }
 
 /* --------------------------------------------------------- room selection */
 function selectRoom(id) {
+  if (state.tab === 'notes') setTab('roam');
   const f = floors.get(state.floor);
   const room = f.rooms.get(id);
   if (!room) return;
@@ -155,7 +167,7 @@ function selectRoom(id) {
 
   const d = room.def;
   const size = Math.max(d.x2 - d.x1, d.z2 - d.z1) * FT;
-  flyTo(new THREE.Vector3(room.centre.x * FT, 0, room.centre.z * FT), THREE.MathUtils.clamp(FRUSTUM / (size * 1.9), 0.8, 3.2));
+  flyTo(new THREE.Vector3(room.centre.x * FT, 0, room.centre.z * FT), THREE.MathUtils.clamp(FRUSTUM / (size * 1.9), 0.8, 3.2) * viewportScale(), state.tab === 'plan' ? PLAN_DIR : ISO_DIR);
   renderDetail(d);
   buildChips();
 }
@@ -169,13 +181,14 @@ function renderDetail(d) {
   const el = $('#detail');
   if (!d) {
     el.innerHTML = `
-      <h3>The whole house <small>2,400 SQ FT</small></h3>
-      <p class="mood">30' × 48' per floor · semi-detached · 4 bed · 4 bath</p>
-      <button class="go" id="go">Pick a room to look at <span>→</span></button>
+      <span class="room-index">The whole house</span>
+      <h3>Room to live.<small>4 BEDROOMS · 4 BATHROOMS</small></h3>
+      <p class="mood">From the first coffee to the last light. Explore the spaces that make a home.</p>
+      <button class="go" id="go">Explore ${state.floor === 'ground' ? 'ground' : 'upper'} floor <span aria-hidden="true">→</span></button>
       <div class="sep"></div>
       <div class="lede">WHAT'S INSIDE</div>
-      <div class="row"><span class="ico">🛋</span><b>Ground</b><span>Living · Dining · Kitchen · Study</span></div>
-      <div class="row"><span class="ico">🛏</span><b>Upper</b><span>Master · Wardrobe · Kids' room</span></div>`;
+      <div class="floor-summary"><span class="number">01</span><b>Ground floor</b><span class="description">Living, dining, kitchen & study</span></div>
+      <div class="floor-summary"><span class="number">02</span><b>Upper floor</b><span class="description">Bedrooms, wardrobe & family space</span></div>`;
     $('#go')?.addEventListener('click', () => {
       const first = floors.get(state.floor).def.rooms[0];
       selectRoom(first.id);
@@ -183,89 +196,110 @@ function renderDetail(d) {
     return;
   }
   el.innerHTML = `
+    <span class="room-index">${state.floor === 'ground' ? '01 / Ground floor' : '02 / Upper floor'}</span>
     <h3>${d.name} <small>${sizeOf(d)}</small></h3>
     <p class="mood">${d.mood}</p>
-    <button class="go" id="go">Step into this room <span>→</span></button>
+    <button class="go" id="go">Look closer <span aria-hidden="true">↗</span></button>
     <div class="sep"></div>
     <div class="lede">IN THIS ROOM</div>
-    <div class="row"><span class="ico">✦</span><b>${(d.materials || [])[0] || 'In design'}</b><span>›</span></div>
-    <div class="row"><span class="ico">💡</span><b>Lights</b>
-      <button class="switch ${state.roomLight ? 'is-on' : ''}" id="sw-light"></button></div>
+    <div class="row"><span class="ico" aria-hidden="true">◇</span><b>${(d.materials || [])[0] || 'In design'}</b></div>
+    <div class="row"><span class="ico" aria-hidden="true">☼</span><b>House lights</b>
+      <button class="switch ${state.roomLight ? 'is-on' : ''}" id="sw-light" aria-label="House lights" aria-pressed="${state.roomLight}"></button></div>
     <div class="row"><span class="ico">▦</span><b>Full walls</b>
-      <button class="switch ${state.walls ? 'is-on' : ''}" id="sw-walls"></button></div>`;
+      <button class="switch ${state.walls ? 'is-on' : ''}" id="sw-walls" aria-label="Full walls" aria-pressed="${state.walls}"></button></div>`;
   $('#go').addEventListener('click', () => {
     const size = Math.max(d.x2 - d.x1, d.z2 - d.z1) * FT;
     flyTo(
       new THREE.Vector3(((d.x1 + d.x2) / 2) * FT, 0, ((d.z1 + d.z2) / 2) * FT),
-      THREE.MathUtils.clamp(FRUSTUM / (size * 1.1), 1.2, 5),
-      new THREE.Vector3(1, 0.55, 1).normalize()
+      THREE.MathUtils.clamp(FRUSTUM / (size * 1.1), 1.2, 5) * viewportScale(),
+      state.tab === 'plan' ? PLAN_DIR : new THREE.Vector3(1, 0.55, 1).normalize()
     );
   });
   $('#sw-light').addEventListener('click', () => {
     state.roomLight = !state.roomLight;
-    $('#sw-light').classList.toggle('is-on', state.roomLight);
+    setPressed($('#sw-light'), state.roomLight);
     setHour(state.hour);
   });
   $('#sw-walls').addEventListener('click', () => {
     state.walls = !state.walls;
     applyDisplay();
-    $('#sw-walls').classList.toggle('is-on', state.walls);
   });
 }
 
 function buildChips() {
   const wrap = $('#chips');
+  const focusedRoom = wrap.contains(document.activeElement) ? document.activeElement.dataset.room : null;
   wrap.innerHTML = '';
   for (const r of floors.get(state.floor).def.rooms) {
     const b = document.createElement('button');
     b.textContent = r.name;
     b.className = state.room === r.id ? 'is-on' : '';
+    b.dataset.room = r.id;
+    b.setAttribute('aria-pressed', String(state.room === r.id));
     b.addEventListener('click', () => selectRoom(r.id));
     wrap.appendChild(b);
+    if (focusedRoom === r.id) b.focus({ preventScroll: true });
   }
 }
 
 /* -------------------------------------------------------------- the notes */
 function renderNotes() {
   const wrap = $('#notes');
-  wrap.innerHTML = '';
+  wrap.innerHTML = `<div class="notes-heading"><div><div class="eyebrow">The design journal / ${state.floor === 'ground' ? '01' : '02'}</div><h2>${state.floor === 'ground' ? 'Ground' : 'Upper'} floor, considered.</h2></div><p>Materials, light, and the way we live.</p></div><div class="notes-grid"></div>`;
   for (const r of floors.get(state.floor).def.rooms) {
     const card = document.createElement('article');
     card.className = 'note';
     card.innerHTML = `
       <div class="tag" style="background:${r.accent}"></div>
-      <h4>${r.name}<small>${sizeOf(r)}</small></h4>
+      <h3>${r.name}<small>${sizeOf(r)}</small></h3>
       <div class="mood">${r.mood}</div>
       <p>${r.note}</p>
       <ul>${(r.materials || []).map((m) => `<li>${m}</li>`).join('')}</ul>
-      <div class="light">💡 ${r.light || ''}</div>`;
-    card.addEventListener('click', () => {
+      <div class="light">${r.light || ''}</div>
+      <button class="note-link" aria-label="Explore ${r.name}">Explore this room <span aria-hidden="true">↗</span></button>`;
+    card.querySelector('button').addEventListener('click', () => {
       setTab('roam');
       selectRoom(r.id);
+      $('#go').focus({ preventScroll: true });
+      if (matchMedia('(max-width: 760px)').matches) $('#viewport').scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth' });
     });
-    wrap.appendChild(card);
+    wrap.querySelector('.notes-grid').appendChild(card);
   }
 }
 
 /* ------------------------------------------------------------------ views */
+const PLAN_DIR = new THREE.Vector3(0, 1, 0.001).normalize();
+function viewportScale() {
+  return Math.min(1, .82 * canvas.clientWidth / Math.max(1, canvas.clientHeight));
+}
 function resetView() {
-  flyTo(HOUSE_CENTRE.clone(), 1.05);
+  if (state.tab === 'notes') return;
+  if (state.tab === 'plan') return topView();
+  flyTo(HOUSE_CENTRE.clone(), 1.05 * viewportScale());
 }
 function topView() {
-  flyTo(HOUSE_CENTRE.clone(), 1.15, new THREE.Vector3(0.001, 1, 0.001).normalize());
+  flyTo(HOUSE_CENTRE.clone(), 1.0 * viewportScale(), PLAN_DIR);
 }
 
 function setTab(tab) {
   state.tab = tab;
-  document.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('is-on', b.dataset.tab === tab));
+  document.querySelectorAll('[data-tab]').forEach((b) => setPressed(b, b.dataset.tab === tab));
   const roam = tab === 'roam';
   const plan = tab === 'plan';
   $('#notes').classList.toggle('hidden', tab !== 'notes');
-  labelLayer.classList.toggle('hidden', tab === 'notes');
+  labelLayer.classList.toggle('hidden', tab === 'notes' || !state.labels);
+  $('#stage').classList.toggle('is-notes', tab === 'notes');
+  $('#info-panel').inert = tab === 'notes';
+  $('#viewport').inert = tab === 'notes';
+  $('#view-mode').textContent = plan ? 'Top-down view' : 'Isometric view';
+  controls.enableRotate = !plan;
+  controls.minPolarAngle = plan ? 0.001 : 0.1;
   $('#detail').classList.toggle('hidden', tab === 'notes');
   $('#dock').classList.toggle('hidden', tab === 'notes');
-  $('#hero').classList.toggle('hidden', !roam);
-  $('#walkhint').classList.toggle('hidden', !roam);
+  $('#walkhint').innerHTML = plan ? 'Drag to pan <span>·</span> Scroll to zoom <span>·</span> Select a room to explore' : 'Drag to orbit <span>·</span> Scroll to zoom <span>·</span> Select a room to explore';
+  controls.mouseButtons.LEFT = plan ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  controls.touches.ONE = plan ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+  resize();
   if (tab === 'notes') renderNotes();
   if (plan) topView();
   if (roam) resetView();
@@ -319,28 +353,15 @@ function setHour(h) {
   for (const m of lamps) m.emissiveIntensity = warmth * 2.2;
   for (const l of indoorLights) l.intensity = warmth * 7;
 
-  // the page itself warms and cools with the hour
-  const bg = night
-    ? 'radial-gradient(120% 80% at 50% 0%, #3c3a44 0%, #2e2c36 55%, #232129 100%)'
-    : dusk > 0.35
-      ? 'radial-gradient(120% 80% at 50% 0%, #fff1df 0%, #f6e0c9 55%, #e9cdb2 100%)'
-      : 'radial-gradient(120% 80% at 50% 0%, #fffaf2 0%, #faf5ed 55%, #f0e7da 100%)';
-  document.body.style.background = bg;
-  document.body.style.color = night ? '#f4efe6' : '';
-  document.documentElement.style.setProperty('--card', night ? 'rgba(58,55,66,.92)' : '#fffdf9');
-  document.documentElement.style.setProperty('--ink', night ? '#f6f1e8' : '#4a4038');
-  document.documentElement.style.setProperty('--ink-soft', night ? '#ddd4c6' : '#6f6458');
-  document.documentElement.style.setProperty('--line', night ? 'rgba(255,255,255,.12)' : '#ece3d4');
-  document.documentElement.style.setProperty('--cream-2', night ? 'rgba(255,255,255,.10)' : '#f3ece1');
+  document.documentElement.dataset.light = night ? 'night' : dusk > 0.35 ? 'dusk' : 'day';
 
   const hh = Math.floor(h);
   const mm = Math.floor((h - hh) * 60);
   const clock = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-  $('#clock').textContent = clock;
   $('#clock2').textContent = clock;
-  $('#phase').textContent = phaseOf(h);
   $('#phase2').textContent = phaseOf(h);
   $('#time').value = String(h);
+  $('#time').setAttribute('aria-valuetext', `${clock}, ${phaseOf(h)}`);
 
   placePeople();
 }
@@ -349,7 +370,6 @@ function setHour(h) {
 function placePeople(instant = false) {
   const f = floors.get(state.floor);
   const cast = $('#cast');
-  cast.innerHTML = '';
   for (const p of people) {
     const slot = scheduleAt(p.def, state.hour);
     p.slot = slot;
@@ -362,15 +382,23 @@ function placePeople(instant = false) {
       p.target.set(room.centre.x + jitterX, 0.3, room.centre.z + 1.2);
       if (instant) p.mesh.position.copy(p.target);
     }
-    const who = document.createElement('div');
-    who.className = 'who';
-    who.innerHTML = `<div class="face">${p.def.id === 'he' ? '🧒' : '👧'}</div>
-      <div><b>${p.def.name}</b><span>${slot.act}</span></div>`;
-    who.addEventListener('click', () => {
-      if (slot.floor !== state.floor) showFloor(slot.floor);
-      selectRoom(slot.room);
-    });
-    cast.appendChild(who);
+    let who = cast.querySelector(`[data-person="${p.def.id}"]`);
+    if (!who) {
+      who = document.createElement('button');
+      who.className = 'who';
+      who.dataset.person = p.def.id;
+      who.innerHTML = `<span class="face" aria-hidden="true">${p.def.name[0]}</span>
+        <span><b>${p.def.name}</b><span class="activity"></span></span>`;
+      who.addEventListener('click', () => {
+        const current = p.slot;
+        if (current.floor !== state.floor) showFloor(current.floor);
+        selectRoom(current.room);
+      });
+      cast.appendChild(who);
+    }
+    who.setAttribute('aria-label', `Find ${p.def.name}: ${slot.act}`);
+    who.title = `Find ${p.def.name}: ${slot.act}`;
+    who.querySelector('.activity').textContent = slot.act;
   }
 }
 
@@ -395,25 +423,35 @@ canvas.addEventListener('pointerup', (e) => {
 document.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
 document.querySelectorAll('[data-floor]').forEach((b) => b.addEventListener('click', () => showFloor(b.dataset.floor)));
 $('#btn-reset').addEventListener('click', resetView);
-$('#btn-top').addEventListener('click', () => { state.room = null; renderDetail(null); buildChips(); resetView(); });
+$('#btn-top').addEventListener('click', () => {
+  state.room = null;
+  for (const [, r] of floors.get(state.floor).rooms) r.plate.material.color.copy(r.plate.userData.baseColor);
+  renderDetail(null); buildChips(); resetView();
+});
 $('#btn-walls').addEventListener('click', () => { state.walls = !state.walls; applyDisplay(); });
 $('#btn-furniture').addEventListener('click', () => { state.furniture = !state.furniture; applyDisplay(); });
+$('#btn-labels').addEventListener('click', () => {
+  state.labels = !state.labels;
+  setPressed($('#btn-labels'), state.labels);
+  labelLayer.classList.toggle('hidden', !state.labels);
+});
 $('#time').addEventListener('input', (e) => setHour(Number(e.target.value)));
 $('#play').addEventListener('click', () => {
   state.playing = !state.playing;
   $('#play').textContent = state.playing ? '❚❚' : '▶';
+  $('#play').setAttribute('aria-label', `${state.playing ? 'Pause' : 'Play'} daylight simulation`);
+  setPressed($('#play'), state.playing);
 });
 document.querySelectorAll('[data-speed]').forEach((b) =>
   b.addEventListener('click', () => {
     state.speed = Number(b.dataset.speed);
-    document.querySelectorAll('[data-speed]').forEach((x) => x.classList.toggle('is-on', x === b));
+    document.querySelectorAll('[data-speed]').forEach((x) => setPressed(x, x === b));
   })
 );
 document.querySelectorAll('[data-wx]').forEach((b) =>
   b.addEventListener('click', () => {
     state.weather = b.dataset.wx;
-    document.querySelectorAll('[data-wx]').forEach((x) => x.classList.toggle('is-on', x === b));
-    $('#wx-now').textContent = b.textContent;
+    document.querySelectorAll('[data-wx]').forEach((x) => setPressed(x, x === b));
     setHour(state.hour);
   })
 );
@@ -421,6 +459,7 @@ document.querySelectorAll('[data-wx]').forEach((b) =>
 /* ----------------------------------------------------------------- resize */
 function resize() {
   const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
   const w = Math.max(1, rect.width);
   const h = Math.max(1, rect.height);
   renderer.setSize(w, h, false);
@@ -431,7 +470,17 @@ function resize() {
   camera.bottom = -FRUSTUM / 2;
   camera.updateProjectionMatrix();
 }
-window.addEventListener('resize', resize);
+let previousWidth = 0;
+let previousHeight = 0;
+new ResizeObserver(() => {
+  if (!canvas.clientWidth || !canvas.clientHeight) return;
+  if (previousWidth === canvas.clientWidth && previousHeight === canvas.clientHeight) return;
+  previousWidth = canvas.clientWidth;
+  previousHeight = canvas.clientHeight;
+  resize();
+  if (state.room) selectRoom(state.room);
+  else resetView();
+}).observe($('#viewport'));
 
 /* ------------------------------------------------------------------- loop */
 const clock = new THREE.Clock();
@@ -457,13 +506,14 @@ function tick() {
   for (const p of people) {
     if (!p.mesh.visible) continue;
     p.mesh.position.lerp(p.target, 1 - Math.pow(0.001, dt));
-    p.mesh.position.y = 0.3 + Math.abs(Math.sin(performance.now() / 420)) * 0.08;
+    p.mesh.position.y = reducedMotion.matches ? 0.3 : 0.3 + Math.abs(Math.sin(performance.now() / 420)) * 0.08;
   }
 
   controls.update();
-  renderer.render(scene, camera);
-  const rect = canvas.getBoundingClientRect();
-  if (state.tab !== 'notes') updateLabels(labels, camera, rect, FT, state.room);
+  if (state.tab !== 'notes') {
+    renderer.render(scene, camera);
+    if (state.labels) updateLabels(labels, camera, canvas.getBoundingClientRect(), FT, state.room);
+  }
   requestAnimationFrame(tick);
 }
 
@@ -471,7 +521,7 @@ function tick() {
 resize();
 showFloor('ground');
 setHour(state.hour);
-flyTo(HOUSE_CENTRE.clone(), 1.05, ISO_DIR, true);
+flyTo(HOUSE_CENTRE.clone(), 1.05 * viewportScale(), ISO_DIR, true);
 setTab('roam');
 tick();
 
