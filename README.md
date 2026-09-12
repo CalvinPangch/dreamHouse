@@ -72,4 +72,16 @@ while the design reads in the units it was drawn in.
 ## Deploying
 
 Static, no build step. `vercel.json` sets it up for Vercel (`framework: null`, output
-directory `.`), so `vercel --prod` or a dashboard import both work with no settings.
+directory `.`), so a dashboard import works with no further settings.
+
+**Production always tracks `main`.** The control that decides this is in the Vercel
+dashboard, not this repo: *Project → Settings → Git → Production Branch → `main`*. Vercel
+seeds that field from the repository's default branch when the project is created and
+then keeps its own copy, so check it rather than assuming it followed a later change.
+Every other branch gets a preview URL instead.
+
+`vercel.json` also carries `git.deploymentEnabled: { "main": true }`, which pins `main`
+as a deploying branch. Note that the CLI ignores all of this: `vercel --prod` promotes
+whatever is in your working directory from any branch, as does the *Promote to
+Production* button on a deployment. Use plain `vercel` for previews and let Git drive
+production.
