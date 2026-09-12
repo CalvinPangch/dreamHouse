@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>暖阳半院 · 半独立式住宅 3D 家</title>
+<title>Sunny Half House · A semi-detached home in 3D</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-<meta name="description" content="暖阳半院 —— 一套双层半独立式住宅的 3D 室内设计：一层、二层全屋漫游，房间手记与户型图，随时间变化的光。" />
-<meta property="og:title" content="暖阳半院 · Sunny Half House" />
-<meta property="og:description" content="双层半独立式住宅的 3D 室内设计 · 全屋漫游 · 房间手记 · 户型图" />
+<meta name="description" content="Sunny Half House — the interior design of a double storey semi-detached home as a 3D dollhouse: walk both floors, read the design notes, and watch the light change through the day." />
+<meta property="og:title" content="Sunny Half House" />
+<meta property="og:description" content="Interior design for a double storey semi-detached home · Walkthrough · Design notes · Floor plan" />
 <meta property="og:image" content="./preview.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <style>
@@ -30,7 +30,7 @@
   body {
     background: radial-gradient(120% 80% at 50% 0%, #fffaf2 0%, var(--cream) 55%, #f0e7da 100%);
     color: var(--ink);
-    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
   button { font-family: inherit; color: inherit; cursor: pointer; }
@@ -249,27 +249,27 @@
   <header>
     <div class="brand">
       <div class="mark">🏠</div>
-      <h1>暖阳半院<sub>Sunny Half House</sub></h1>
+      <h1>Sunny Half House<sub>Semi-detached · 2,400 sq ft</sub></h1>
       <div class="dot"></div>
     </div>
-    <div class="live"><i></i>实况</div>
+    <div class="live"><i></i>Live</div>
     <div class="spacer"></div>
     <div class="clock">
       <div><span class="wx" id="wx-now">☀️</span><b id="clock">08:24</b></div>
-      <span id="phase">晨光轻轻</span>
+      <span id="phase">Soft morning light</span>
     </div>
   </header>
 
   <nav class="tabs">
-    <button data-tab="roam" class="is-on">🏠 全屋漫游</button>
-    <button data-tab="notes">🗒 房间手记</button>
-    <button data-tab="plan">🗺 户型图</button>
+    <button data-tab="roam" class="is-on">🏠 Walkthrough</button>
+    <button data-tab="notes">🗒 Design notes</button>
+    <button data-tab="plan">🗺 Floor plan</button>
   </nav>
 
   <div class="chipbar">
     <div class="floorswitch">
-      <button data-floor="ground" class="is-on">一层</button>
-      <button data-floor="upper">二层</button>
+      <button data-floor="ground" class="is-on">Ground</button>
+      <button data-floor="upper">Upper</button>
     </div>
     <div class="chips" id="chips"></div>
   </div>
@@ -279,20 +279,20 @@
     <div id="labels"></div>
 
     <div class="hero" id="hero">
-      <div class="eyebrow">家的全貌</div>
-      <h2>今天，也好好生活。</h2>
-      <p>选一个房间，走进属于你的小小世界</p>
+      <div class="eyebrow">The whole house</div>
+      <h2>Make today a good day.</h2>
+      <p>Pick a room and step into it</p>
     </div>
 
-    <div class="walkhint" id="walkhint">🚶 点击房间，走进去看看</div>
+    <div class="walkhint" id="walkhint">🚶 Click any room to step inside</div>
 
     <div class="dock" id="dock">
-      <button id="btn-reset">↺ 复位</button>
+      <button id="btn-reset">↺ Reset</button>
       <div class="div"></div>
-      <button id="btn-walls">▦ 完整墙体</button>
-      <button id="btn-furniture" class="is-on">🛋 家具</button>
+      <button id="btn-walls">▦ Full walls</button>
+      <button id="btn-furniture" class="is-on">🛋 Furniture</button>
       <div class="div"></div>
-      <button id="btn-top">⌂ 全屋</button>
+      <button id="btn-top">⌂ Whole house</button>
     </div>
 
     <aside class="detail" id="detail"></aside>
@@ -302,7 +302,7 @@
 
   <div class="timebar">
     <div class="now">
-      <b id="clock2">08:24</b><span id="phase2">晨光轻轻</span>
+      <b id="clock2">08:24</b><span id="phase2">Soft morning light</span>
     </div>
     <div>
       <div class="track">
@@ -316,7 +316,7 @@
           <button data-speed="24" class="is-on">24×</button>
         </div>
       </div>
-      <div class="marks"><span>清晨</span><span>午后</span><span>黄昏</span><span>夜晚</span></div>
+      <div class="marks"><span>Dawn</span><span>Afternoon</span><span>Dusk</span><span>Night</span></div>
     </div>
     <div class="right">
       <div class="cast" id="cast"></div>

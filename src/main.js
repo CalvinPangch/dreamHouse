@@ -160,17 +160,22 @@ function selectRoom(id) {
   buildChips();
 }
 
+/** A room's footprint, e.g. 19' × 18'. */
+function sizeOf(d) {
+  return `${Math.round(d.x2 - d.x1)}' × ${Math.round(d.z2 - d.z1)}'`;
+}
+
 function renderDetail(d) {
   const el = $('#detail');
   if (!d) {
     el.innerHTML = `
-      <h3>整屋 <small>WHOLE HOUSE</small></h3>
-      <p class="mood">30' × 48' · 双层半独立式 · 4 房 4 卫</p>
-      <button class="go" id="go">选一个房间看看 <span>→</span></button>
+      <h3>The whole house <small>2,400 SQ FT</small></h3>
+      <p class="mood">30' × 48' per floor · semi-detached · 4 bed · 4 bath</p>
+      <button class="go" id="go">Pick a room to look at <span>→</span></button>
       <div class="sep"></div>
-      <div class="lede">此刻</div>
-      <div class="row"><span class="ico">🛋</span><b>一层</b><span>客厅 · 餐厅 · 西厨 · 书房</span></div>
-      <div class="row"><span class="ico">🛏</span><b>二层</b><span>主卧 · 衣帽间 · 儿童房</span></div>`;
+      <div class="lede">WHAT'S INSIDE</div>
+      <div class="row"><span class="ico">🛋</span><b>Ground</b><span>Living · Dining · Kitchen · Study</span></div>
+      <div class="row"><span class="ico">🛏</span><b>Upper</b><span>Master · Wardrobe · Kids' room</span></div>`;
     $('#go')?.addEventListener('click', () => {
       const first = floors.get(state.floor).def.rooms[0];
       selectRoom(first.id);
@@ -178,15 +183,15 @@ function renderDetail(d) {
     return;
   }
   el.innerHTML = `
-    <h3>${d.name} <small>${d.en.toUpperCase()}</small></h3>
+    <h3>${d.name} <small>${sizeOf(d)}</small></h3>
     <p class="mood">${d.mood}</p>
-    <button class="go" id="go">走进这个房间 <span>→</span></button>
+    <button class="go" id="go">Step into this room <span>→</span></button>
     <div class="sep"></div>
-    <div class="lede">和家，打个招呼</div>
-    <div class="row"><span class="ico">✦</span><b>${(d.materials || [])[0] || '设计中'}</b><span>›</span></div>
-    <div class="row"><span class="ico">💡</span><b>${d.name}灯</b>
+    <div class="lede">IN THIS ROOM</div>
+    <div class="row"><span class="ico">✦</span><b>${(d.materials || [])[0] || 'In design'}</b><span>›</span></div>
+    <div class="row"><span class="ico">💡</span><b>Lights</b>
       <button class="switch ${state.roomLight ? 'is-on' : ''}" id="sw-light"></button></div>
-    <div class="row"><span class="ico">▦</span><b>完整墙体</b>
+    <div class="row"><span class="ico">▦</span><b>Full walls</b>
       <button class="switch ${state.walls ? 'is-on' : ''}" id="sw-walls"></button></div>`;
   $('#go').addEventListener('click', () => {
     const size = Math.max(d.x2 - d.x1, d.z2 - d.z1) * FT;
@@ -229,7 +234,7 @@ function renderNotes() {
     card.className = 'note';
     card.innerHTML = `
       <div class="tag" style="background:${r.accent}"></div>
-      <h4>${r.name}<small>${r.en.toUpperCase()}</small></h4>
+      <h4>${r.name}<small>${sizeOf(r)}</small></h4>
       <div class="mood">${r.mood}</div>
       <p>${r.note}</p>
       <ul>${(r.materials || []).map((m) => `<li>${m}</li>`).join('')}</ul>
@@ -268,13 +273,13 @@ function setTab(tab) {
 
 /* -------------------------------------------------------------- day cycle */
 const PHASES = [
-  [6.5, '天刚亮'], [9, '晨光轻轻'], [11.5, '上午好光'], [14, '午后暖暖'],
-  [17, '斜阳半窗'], [19, '黄昏来了'], [21, '灯都亮了'], [24, '夜深了'],
+  [6.5, 'First light'], [9, 'Soft morning light'], [11.5, 'Bright and clear'], [14, 'Warm afternoon'],
+  [17, 'Low sun on the walls'], [19, 'Dusk settling in'], [21, 'Lamps are on'], [24, 'Late and quiet'],
 ];
 
 function phaseOf(h) {
   for (const [limit, name] of PHASES) if (h < limit) return name;
-  return '夜深了';
+  return 'Late and quiet';
 }
 
 const WX = {

@@ -1,4 +1,4 @@
-# 暖阳半院 · Sunny Half House
+# Sunny Half House
 
 An interior design for a double storey **semi-detached** home, presented as a warm,
 illustrated 3D dollhouse you can walk around, light up and read.
@@ -15,30 +15,28 @@ python3 -m http.server 8080     # or: npx http-server -p 8080
 
 ## What's in it
 
-**全屋漫游 / Roam** — the isometric dollhouse. Click a room (or its label, or a chip)
+**Walkthrough** — the isometric dollhouse. Click a room (or its label, or a chip)
 and the camera eases in, the room lifts out of the palette and the card on the right
-tells you what it's made of. `完整墙体` raises the walls to full height and glazes the
-windows; `家具` strips the furniture out to read the plan.
+tells you what it's made of. `Full walls` raises the walls to full height and glazes the
+windows; `Furniture` strips the furniture out to read the plan.
 
-**房间手记 / Room notes** — the design brief, room by room: the idea, the materials,
+**Design notes** — the design brief, room by room: the idea, the materials,
 and how each space is lit.
 
-**户型图 / Floor plan** — straight down, walls cut, labels on.
+**Floor plan** — straight down, walls cut, labels on.
 
 **The day** — the slider runs 05:00 to 23:00. The sun swings round and changes colour,
-lamps warm up at dusk, the whole interface turns to evening, and 小禾 and 小满 move
+lamps warm up at dusk, the whole interface turns to evening, and Ethan and Mia move
 through the house on their own timetable — coffee at the island at 08:24, sunbathing on
 the balcony at two, a film on the sofa at eight. Weather (☀️ ☁️ 🌧️) re-lights the scene.
 
 ## The design
 
-**Ground floor** — 玄关 foyer · 客厅 living · 餐厅 dining · 西厨 open kitchen with island ·
-中厨 wet kitchen · 洗衣房 laundry · 客卫 powder room · 书房 study/guest · 楼梯 stair ·
-停车与庭院 porch and garden.
+**Ground floor** — foyer · living · dining · open kitchen with island · wet kitchen ·
+laundry · powder room · study/guest · stair · porch and garden.
 
-**First floor** — 主卧 master · 主卫 master bath with a freestanding tub · 衣帽间 walk-in ·
-家庭厅 family hall · 次卧 bedroom 2 · 儿童房 kids' room · 公卫 common bath · 家政间 utility ·
-楼梯厅 landing · 阳台 balcony.
+**First floor** — master · master bath with a freestanding tub · walk-in wardrobe ·
+family hall · bedroom 2 · kids' room · common bath · utility · landing · balcony.
 
 Some of the moves: the living room's sofa floats off the wall so a walking loop runs
 behind it; the kitchen island doubles as the family's second table and faces the dining
@@ -58,7 +56,7 @@ src/design.js       THE DESIGN - rooms, palette, notes, furniture, residents
 src/build.js        soft rounded volumes, and walls derived from the room plan
 src/furniture.js    35 pieces of furniture, all soft-cornered
 src/house.js        assembles one floor: plinth, floors, walls, windows, furniture
-src/people.js       小禾 and 小满
+src/people.js       Ethan and Mia
 src/labels.js       HTML room labels pinned to the model
 src/main.js         scene, camera, day cycle, interaction
 vendor/three/       three.js r169 (module build, OrbitControls, RoundedBoxGeometry)

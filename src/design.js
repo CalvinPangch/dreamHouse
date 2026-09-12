@@ -1,7 +1,7 @@
 /**
- * 暖阳半院 · Sunny Half House
+ * Sunny Half House
  * The interior design brief: palette, room programme, and the notes that
- * appear in 房间手记 (room notes).
+ * appear in the Design Notes tab.
  *
  * A double storey semi-detached house, 30' x 48' built-up, designed in a warm
  * cream "Japandi" palette - oak, oat, clay and sage, with soft daylight.
@@ -36,11 +36,11 @@ export const TONE = {
 
 const GROUND = [
   {
-    id: 'living', name: '客厅', en: 'Living Room', mood: '把下午的光，留在沙发上',
+    id: 'living', name: "Living Room", en: 'Living Room', mood: "Where the afternoon light lands on the sofa",
     x1: 0, z1: 22, x2: 19, z2: 40, accent: TONE.sage, floor: TONE.oak,
-    note: '整面推拉门把庭院借进来，沙发不靠墙、留出一条回游动线。米白布艺 + 燕麦色羊毛地毯，电视墙做成整墙木饰面与开放格，把电器藏起来，只留下书与器物。',
-    materials: ['橡木地板 Oak floor', '米白棉麻布艺 Linen upholstery', '藤编与陶器 Rattan & ceramic'],
-    light: '主灯退场，落地灯 + 壁灯 + 灯带三层光',
+    note: "A full wall of sliding doors borrows the garden. The sofa floats off the wall so a walking loop runs behind it. Off-white linen upholstery over an oat wool rug; the TV wall is one run of timber veneer with open niches, so the electronics disappear and only books and ceramics stay out.",
+    materials: ["Oak floor", "Linen upholstery", "Rattan & ceramic"],
+    light: "No ceiling light - floor lamp, sconces and a cove, in three layers",
     furniture: [
       { type: 'rug', x: 9, z: 31, w: 13, d: 10, color: TONE.oat },
       { type: 'sofa', x: 9, z: 35.5, rot: 180, w: 10, d: 3.4, color: '#efe9de' },
@@ -55,11 +55,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'dining', name: '餐厅', en: 'Dining', mood: '一张能坐很久的长桌',
+    id: 'dining', name: "Dining", en: 'Dining', mood: "One long table, for evenings that run late",
     x1: 19, z1: 12, x2: 30, z2: 28, accent: TONE.clay, floor: TONE.oak,
-    note: '长桌斜对着西厨中岛，做饭的人不会被隔开。头顶三盏小吊灯压低，饭桌之外的光都暗下去；侧墙做到顶的餐边柜，收纳全部日常杂物。',
-    materials: ['实木长桌 Solid oak table', '藤编餐椅 Rattan chairs', '哑光陶砖 Matt tile'],
-    light: '低垂吊灯三盏，2700K',
+    note: "The long table sits at an angle to the kitchen island, so whoever is cooking is never shut away. Three small pendants hang low and everything beyond the table falls dark. A full-height sideboard on the side wall swallows the everyday clutter.",
+    materials: ["Solid oak table", "Rattan chairs", "Matt tile"],
+    light: "Three low pendants at 2700K",
     furniture: [
       { type: 'rug', x: 24.5, z: 20, w: 9, d: 11, color: TONE.linen },
       { type: 'diningTable', x: 24.5, z: 20, w: 3.6, d: 8, chairs: 6 },
@@ -69,11 +69,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'kitchen', name: '西厨', en: 'Open Kitchen', mood: '中岛是家里第二张餐桌',
+    id: 'kitchen', name: "Open Kitchen", en: 'Open Kitchen', mood: "The island is the second dining table",
     x1: 0, z1: 12, x2: 11, z2: 22, accent: TONE.butter, floor: TONE.oakDeep,
-    note: '开放式中岛正对餐厅，早餐、作业、聊天都在这里发生。上柜改成开放木层板，下柜做无把手；台面用米白石英石，耐用又不冷。',
-    materials: ['米白石英石 Quartz top', '无把手木柜 Handleless oak', '手工砖墙面 Zellige tile'],
-    light: '中岛吊灯 + 层板灯带',
+    note: "The open island faces the dining room: breakfast, homework and conversation all happen here. Upper cabinets become open timber shelves, lower ones go handleless. Off-white quartz for the worktop - hardwearing without feeling cold.",
+    materials: ["Quartz worktop", "Handleless oak", "Zellige tile"],
+    light: "Island pendants plus shelf strip lighting",
     furniture: [
       { type: 'counter', x: 5.5, z: 12.9, rot: 0, w: 10, d: 2.1 },
       { type: 'counter', x: 0.9, z: 17, rot: 90, w: 8, d: 2.1 },
@@ -83,11 +83,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'wetkitchen', name: '中厨', en: 'Wet Kitchen', mood: '大火与热气，关上门',
+    id: 'wetkitchen', name: "Wet Kitchen", en: 'Wet Kitchen', mood: "Keep the wok smoke behind a door",
     x1: 0, z1: 0, x2: 11, z2: 12, accent: TONE.mist, floor: TONE.oakDeep,
-    note: '爆炒的油烟留在玻璃门后。三面操作台形成 U 形动线，水槽对着后院的窗，洗菜时也能看见光。',
-    materials: ['不锈钢台面 Stainless top', '长虹玻璃门 Fluted glass', '防滑地砖 Anti-slip tile'],
-    light: '顶部平板灯，作业面灯带',
+    note: "The smoke from a hot wok stays behind the glass door. Three runs of counter make a U-shaped working line, and the sink faces the rear window so there is daylight while you wash.",
+    materials: ["Stainless worktop", "Fluted glass door", "Anti-slip tile"],
+    light: "Flat ceiling panel, strip light over the worktop",
     furniture: [
       { type: 'counter', x: 5.5, z: 0.9, rot: 0, w: 10, d: 2.1 },
       { type: 'counter', x: 0.9, z: 6, rot: 90, w: 9, d: 2.1 },
@@ -97,11 +97,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'laundry', name: '洗衣房', en: 'Laundry', mood: '把家务藏进一扇门里',
+    id: 'laundry', name: "Laundry", en: 'Laundry', mood: "Housework, tucked behind one door",
     x1: 11, z1: 0, x2: 19, z2: 6, accent: TONE.oat, floor: TONE.oakDeep,
-    note: '洗烘叠放，上方吊柜放清洁用品，留出一段挂烫的空档。门一关，杂乱与声音都留在里面。',
-    materials: ['防潮板柜体 Moisture-proof cabinet', '水磨石地面 Terrazzo'],
-    light: '一盏吸顶灯，够亮就好',
+    note: "Washer and dryer stacked, with a cabinet above for cleaning supplies and a gap left for ironing. Close the door and the mess and the noise stay inside.",
+    materials: ["Moisture-proof cabinets", "Terrazzo floor"],
+    light: "One ceiling light - bright is all it needs",
     furniture: [
       { type: 'washer', x: 12.6, z: 1.3 },
       { type: 'washer', x: 15.2, z: 1.3 },
@@ -109,11 +109,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'powder', name: '客卫', en: 'Powder Room', mood: '给客人的小小体面',
+    id: 'powder', name: "Powder Room", en: 'Powder Room', mood: "A small courtesy for guests",
     x1: 11, z1: 6, x2: 19, z2: 12, accent: TONE.mist, floor: TONE.oakDeep,
-    note: '干湿分离，台盆下悬空显得轻。墙面用微水泥收边，配一面圆镜和一盏暖光壁灯。',
-    materials: ['微水泥 Micro-cement', '圆形黑框镜 Round mirror'],
-    light: '镜前壁灯，显色 Ra95',
+    note: "Wet and dry separated. The basin floats off the floor so the room feels lighter. Micro-cement to the walls, a round mirror and one warm sconce.",
+    materials: ["Micro-cement", "Round black-framed mirror"],
+    light: "Mirror sconce, Ra95 for colour",
     furniture: [
       { type: 'basin', x: 12.6, z: 10.6, rot: 180 },
       { type: 'toilet', x: 17.4, z: 7.6, rot: 90 },
@@ -121,11 +121,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'study', name: '书房', en: 'Study', mood: '一个人待着的角落',
+    id: 'study', name: "Study", en: 'Study', mood: "A corner to be alone in",
     x1: 19, z1: 0, x2: 30, z2: 12, accent: TONE.clay, floor: TONE.oak,
-    note: '整墙书架 + 一张面窗的长桌。角落放下一张榻，家里来客时就是客房；白天是阅读位，夜里是床。',
-    materials: ['白橡书架 White oak shelving', '亚麻窗帘 Linen curtain'],
-    light: '桌面 LED 长灯，书架层板灯',
+    note: "A full wall of shelving and a long desk facing the window. A daybed in the corner turns the room into a guest room when someone stays: a reading seat by day, a bed at night.",
+    materials: ["White oak shelving", "Linen curtain"],
+    light: "LED bar over the desk, strips in the shelving",
     furniture: [
       { type: 'bookshelf', x: 29.1, z: 6, rot: -90, w: 11, h: 7.5 },
       { type: 'desk', x: 24, z: 1.6, rot: 0, w: 7, d: 2.4 },
@@ -135,21 +135,21 @@ const GROUND = [
     ],
   },
   {
-    id: 'stair', name: '楼梯', en: 'Stairs', mood: '一层一层，回到楼上',
+    id: 'stair', name: "Stairs", en: 'Stairs', mood: "One step at a time, back upstairs",
     x1: 11, z1: 12, x2: 19, z2: 22, accent: TONE.oat, floor: TONE.oakDeep,
-    note: '木踏步配细黑铁扶手，侧面做成开放书格。楼梯下不做储藏，留空放一株高大的植物。',
-    materials: ['橡木踏步 Oak tread', '细黑铁扶手 Slim steel rail'],
-    light: '踏步侧灯带',
+    note: "Oak treads with a slim black steel rail, and open book niches down the side. Nothing is stored under the stair - the space is left for one tall plant.",
+    materials: ["Oak treads", "Slim steel rail"],
+    light: "Strip lighting down the side of each tread",
     furniture: [
       { type: 'staircase', x: 15, z: 17, w: 6, d: 10 },
     ],
   },
   {
-    id: 'foyer', name: '玄关', en: 'Foyer', mood: '进门先放下今天',
+    id: 'foyer', name: "Foyer", en: 'Foyer', mood: "Put the day down at the door",
     x1: 19, z1: 28, x2: 30, z2: 40, accent: TONE.oat, floor: TONE.oakDeep,
-    note: '到顶鞋柜中间留出一段开放台面，钥匙、口罩、快递都有地方放。一条长凳可以坐下换鞋，镜子拉长走道。',
-    materials: ['木饰面柜 Timber veneer', '六角地砖 Hex tile'],
-    light: '柜底感应灯带',
+    note: "Full-height shoe cabinets with an open shelf cut through the middle, so keys, masks and parcels all have somewhere to land. A long bench to sit down on, and a mirror to stretch the hallway.",
+    materials: ["Timber veneer", "Hex tile"],
+    light: "Sensor strip under the cabinets",
     furniture: [
       { type: 'shoeCabinet', x: 29.1, z: 34, rot: -90, w: 10, h: 7.2 },
       { type: 'bench', x: 21.4, z: 33, rot: 90, w: 5 },
@@ -157,11 +157,11 @@ const GROUND = [
     ],
   },
   {
-    id: 'porch', name: '停车与庭院', en: 'Porch & Garden', mood: '回家的最后二十步',
+    id: 'porch', name: "Porch & Garden", en: 'Porch & Garden', mood: "The last twenty steps home",
     x1: 0, z1: 40, x2: 30, z2: 48, accent: TONE.moss, floor: '#d8d2c6', open: true,
-    note: '车位铺透水砖，中间嵌一条草缝。靠围墙种一排细叶植物，晚上用地埋灯打亮，回家时先看见绿。',
-    materials: ['透水砖 Permeable paver', '细叶植栽 Fine-leaf planting'],
-    light: '地埋灯 + 门头壁灯',
+    note: "Permeable pavers for the car, with a strip of grass let into the middle. Fine-leaved planting along the boundary wall, lit from below at night, so the first thing you see coming home is green.",
+    materials: ["Permeable paver", "Fine-leaf planting"],
+    light: "In-ground uplights and a sconce at the door",
     furniture: [
       { type: 'car', x: 8, z: 44 },
       { type: 'car', x: 21, z: 44 },
@@ -173,11 +173,11 @@ const GROUND = [
 
 const UPPER = [
   {
-    id: 'master', name: '主卧', en: 'Master Bedroom', mood: '做一个奶油色的梦',
+    id: 'master', name: "Master Bedroom", en: 'Master Bedroom', mood: "For a dream the colour of cream",
     x1: 0, z1: 22, x2: 19, z2: 40, accent: TONE.rose, floor: TONE.oak,
-    note: '床头做整幅软包，两侧对称壁灯，睡前不必下床关灯。窗边留一个 1.5 米的飘窗位，放坐垫和一张小几——这是房子里最安静的角落。',
-    materials: ['米色软包床头 Upholstered headboard', '双层亚麻窗帘 Sheer + blackout'],
-    light: '壁灯 + 灯带，主灯几乎不开',
+    note: "A full upholstered headboard wall with matching sconces either side - no need to get out of bed to turn off the light. A 1.5 m bay window seat with cushions and a small table: the quietest corner of the house.",
+    materials: ["Upholstered headboard", "Sheer + blackout linen"],
+    light: "Sconces and a cove - the ceiling light barely goes on",
     furniture: [
       { type: 'rug', x: 9, z: 30, w: 12, d: 9, color: TONE.linen },
       { type: 'bed', x: 9, z: 27.5, rot: 0, w: 7, d: 7.5 },
@@ -191,11 +191,11 @@ const UPPER = [
     ],
   },
   {
-    id: 'masterbath', name: '主卫', en: 'Master Bath', mood: '把浴缸放在窗边',
+    id: 'masterbath', name: "Master Bath", en: 'Master Bath', mood: "Put the bathtub by the window",
     x1: 19, z1: 26, x2: 30, z2: 40, accent: TONE.mist, floor: '#e6ded2',
-    note: '独立浴缸靠窗，双台盆各自独立。淋浴区用长虹玻璃隔断，地面做 1% 找坡，水汽一会儿就散。',
-    materials: ['微水泥墙面 Micro-cement', '独立浴缸 Freestanding tub', '长虹玻璃 Fluted glass'],
-    light: '镜前灯 + 防雾筒灯',
+    note: "The freestanding tub sits at the window and the two basins stand apart. Fluted glass screens the shower, and the floor falls 1% to the drain so the steam clears quickly.",
+    materials: ["Micro-cement", "Freestanding tub", "Fluted glass"],
+    light: "Mirror light plus anti-fog downlights",
     furniture: [
       { type: 'bathtub', x: 24.5, z: 38, rot: 0 },
       { type: 'basin', x: 29, z: 31, rot: -90 },
@@ -206,11 +206,11 @@ const UPPER = [
     ],
   },
   {
-    id: 'walkin', name: '衣帽间', en: 'Walk-in Wardrobe', mood: '把衣服一件一件挂好',
+    id: 'walkin', name: "Walk-in Wardrobe", en: 'Walk-in Wardrobe', mood: "Hang each thing in its place",
     x1: 0, z1: 12, x2: 11, z2: 22, accent: TONE.oat, floor: TONE.oak,
-    note: 'U 形开放衣柜，中间一个岛柜放首饰与香水。全部做到顶，顶层放换季收纳箱；柜内灯带随门感应。',
-    materials: ['白橡层板 Oak shelving', '黄铜挂杆 Brass rail'],
-    light: '感应灯带，显色优先',
+    note: "A U-shaped open wardrobe with an island in the middle for jewellery and perfume. Everything runs to the ceiling, with seasonal boxes on the top shelf; the internal lighting comes on as the door opens.",
+    materials: ["Oak shelving", "Brass rail"],
+    light: "Sensor strips, chosen for colour rendering",
     furniture: [
       { type: 'wardrobe', x: 0.9, z: 17, rot: 90, w: 9, h: 8 },
       { type: 'wardrobe', x: 10.1, z: 17, rot: -90, w: 9, h: 8 },
@@ -219,11 +219,11 @@ const UPPER = [
     ],
   },
   {
-    id: 'family', name: '家庭厅', en: 'Family Hall', mood: '一家人各做各的事',
+    id: 'family', name: "Family Hall", en: 'Family Hall', mood: "Everyone doing their own thing",
     x1: 19, z1: 12, x2: 30, z2: 26, accent: TONE.sage, floor: TONE.oak,
-    note: '不放电视，改成整墙书柜和一张大地毯。矮沙发 + 懒人豆袋，孩子在地上拼乐高，大人在旁边看书。',
-    materials: ['羊毛地毯 Wool rug', '开放书柜 Open shelving'],
-    light: '落地灯两盏，暖白',
+    note: "No television here - a full wall of shelving and a big rug instead. A low sofa and floor cushions: children building Lego on the floor, adults reading beside them.",
+    materials: ["Wool rug", "Open shelving"],
+    light: "Two floor lamps, warm white",
     furniture: [
       { type: 'rug', x: 24.5, z: 19.5, w: 9, d: 10, color: TONE.sage },
       { type: 'sofa', x: 24.5, z: 15.4, rot: 0, w: 7, d: 3, color: TONE.linen },
@@ -234,11 +234,11 @@ const UPPER = [
     ],
   },
   {
-    id: 'bed2', name: '次卧', en: 'Bedroom 2', mood: '给爸妈留的房间',
+    id: 'bed2', name: "Bedroom 2", en: 'Bedroom 2', mood: "The room we keep for my parents",
     x1: 0, z1: 0, x2: 12, z2: 12, accent: TONE.mist, floor: TONE.oak,
-    note: '标准双人床 + 一体式书桌梳妆台。床垫偏硬，床头留双控开关和 USB；衣柜做到顶但不压床。',
-    materials: ['白橡家具 Oak furniture', '素色亚麻 Plain linen'],
-    light: '床头双控 + 阅读壁灯',
+    note: "A standard double with a desk that doubles as a dressing table. A firmer mattress, two-way switches and USB at the bedhead; the wardrobe runs full height but stays clear of the bed.",
+    materials: ["Oak furniture", "Plain linen"],
+    light: "Two-way switch at the bed, reading sconce",
     furniture: [
       { type: 'bed', x: 5.6, z: 4, rot: 0, w: 6, d: 7 },
       { type: 'nightstand', x: 1.8, z: 1.4 },
@@ -249,11 +249,11 @@ const UPPER = [
     ],
   },
   {
-    id: 'kids', name: '儿童房', en: "Kids' Room", mood: '地板要能坐下来玩',
+    id: 'kids', name: "Kids' Room", en: "Kids' Room", mood: "A floor you can sit down on",
     x1: 19, z1: 0, x2: 30, z2: 12, accent: TONE.butter, floor: TONE.oak,
-    note: '床靠墙、家具沿边布置，中间留出最大的一块地面。矮书架让孩子自己拿得到书，墙面留一块洞洞板随他们贴。',
-    materials: ['圆角实木家具 Rounded timber', '可擦洗墙漆 Washable paint'],
-    light: '主灯柔光罩 + 小夜灯',
+    note: "The bed goes against the wall and the furniture hugs the edges, leaving the largest possible run of clear floor. Low shelves so they can reach their own books, and a pegboard wall they can do what they like with.",
+    materials: ["Rounded timber", "Washable paint"],
+    light: "Softened ceiling light plus a night light",
     furniture: [
       { type: 'bed', x: 22.6, z: 3.6, rot: 0, w: 4.6, d: 6.4 },
       { type: 'wardrobe', x: 29.1, z: 4, rot: -90, w: 7, h: 7.5 },
@@ -264,11 +264,11 @@ const UPPER = [
     ],
   },
   {
-    id: 'bath2', name: '公卫', en: 'Common Bath', mood: '早晨的第一件事',
+    id: 'bath2', name: "Common Bath", en: 'Common Bath', mood: "The first thing in the morning",
     x1: 12, z1: 0, x2: 19, z2: 7, accent: TONE.mist, floor: '#e6ded2',
-    note: '三分离：洗手台外置，马桶与淋浴各自成间。早上三个人可以同时用，不必排队。',
-    materials: ['小白砖 Subway tile', '黑框玻璃门 Black-framed glass'],
-    light: '防雾镜灯',
+    note: "Three-way separation: basin outside, WC and shower each in their own compartment. Three people can use it at once on a school morning.",
+    materials: ["Subway tile", "Black-framed glass"],
+    light: "Anti-fog mirror light",
     furniture: [
       { type: 'basin', x: 13.6, z: 6.4, rot: 180 },
       { type: 'toilet', x: 17.6, z: 1.4, rot: 0 },
@@ -276,33 +276,33 @@ const UPPER = [
     ],
   },
   {
-    id: 'utility', name: '家政间', en: 'Utility', mood: '被子和毛巾的家',
+    id: 'utility', name: "Utility", en: 'Utility', mood: "Home of the linen and towels",
     x1: 12, z1: 7, x2: 19, z2: 12, accent: TONE.oat, floor: TONE.oakDeep,
-    note: '通高储物柜放四季床品与备用毛巾，最下一格留给吸尘器充电。',
-    materials: ['三聚氰胺板 Melamine board'],
-    light: '一盏筒灯',
+    note: "A full-height store for four seasons of bedding and spare towels, with the bottom shelf left free to charge the vacuum.",
+    materials: ["Melamine board"],
+    light: "A single downlight",
     furniture: [
       { type: 'wardrobe', x: 18.1, z: 9.5, rot: -90, w: 4.6, h: 8 },
       { type: 'washer', x: 13.4, z: 8.4 },
     ],
   },
   {
-    id: 'stairhall', name: '楼梯厅', en: 'Landing', mood: '走廊也值得一盏灯',
+    id: 'stairhall', name: "Landing", en: 'Landing', mood: "Even a hallway deserves a lamp",
     x1: 11, z1: 12, x2: 19, z2: 22, accent: TONE.oat, floor: TONE.oakDeep,
-    note: '楼梯口挂一组家庭照片墙，尽头放一张窄条案与一盏小灯，走廊就不只是走廊。',
-    materials: ['照片墙 Gallery wall', '窄条案 Console'],
-    light: '洗墙射灯',
+    note: "A gallery wall of family photographs at the top of the stairs, and a narrow console with a small lamp at the end - so the corridor is more than a corridor.",
+    materials: ["Gallery wall", "Narrow console"],
+    light: "Wall washers over the photographs",
     furniture: [
       { type: 'staircase', x: 15, z: 17, w: 6, d: 10, down: true },
       { type: 'sideboard', x: 11.8, z: 20, rot: 90, w: 4, d: 1.2 },
     ],
   },
   {
-    id: 'balcony', name: '阳台', en: 'Balcony', mood: '晒被子的好天气',
+    id: 'balcony', name: "Balcony", en: 'Balcony', mood: "Good weather for airing the quilts",
     x1: 0, z1: 40, x2: 30, z2: 48, accent: TONE.moss, floor: '#ded7c9', open: true,
-    note: '一半晾晒、一半喝茶。做一排固定花槽和两张折叠椅，栏杆用玻璃 + 木扶手，坐下时不挡视线。',
-    materials: ['防腐木地板 Timber decking', '玻璃栏杆 Glass balustrade'],
-    light: '壁灯 + 串灯',
+    note: "Half for drying, half for tea. A run of fixed planters and two folding chairs; glass balustrade with a timber handrail, so the view stays open when you sit down.",
+    materials: ["Timber decking", "Glass balustrade"],
+    light: "Sconce and a string of festoon lights",
     furniture: [
       { type: 'dryingRack', x: 7, z: 44 },
       { type: 'armchair', x: 20, z: 43.4, rot: 150, color: TONE.linen },
@@ -315,8 +315,8 @@ const UPPER = [
 ];
 
 export const FLOORS = [
-  { id: 'ground', name: '一层', en: 'Ground Floor', rooms: GROUND },
-  { id: 'upper', name: '二层', en: 'First Floor', rooms: UPPER },
+  { id: 'ground', name: "Ground", en: 'Ground Floor', rooms: GROUND },
+  { id: 'upper', name: "Upper", en: 'First Floor', rooms: UPPER },
 ];
 
 /**
@@ -374,37 +374,37 @@ export const WINDOWS = {
 /** The two residents and what they are doing through the day. */
 export const PEOPLE = [
   {
-    id: 'he', name: '小禾', tint: '#8fae86',
+    id: 'he', name: "Ethan", tint: '#8fae86',
     day: [
-      { h: 6.5, floor: 'upper', room: 'master', act: '刚醒，在窗边发呆' },
-      { h: 7.5, floor: 'upper', room: 'masterbath', act: '在浴室洗漱' },
-      { h: 8.4, floor: 'ground', room: 'kitchen', act: '在中岛煮咖啡' },
-      { h: 9.5, floor: 'ground', room: 'study', act: '在书房工作' },
-      { h: 13, floor: 'ground', room: 'dining', act: '在长桌吃午饭' },
-      { h: 15, floor: 'ground', room: 'study', act: '在书房看书' },
-      { h: 18.5, floor: 'ground', room: 'wetkitchen', act: '在中厨做晚饭' },
-      { h: 20, floor: 'ground', room: 'living', act: '在沙发上看电影' },
-      { h: 22.5, floor: 'upper', room: 'master', act: '准备睡了' },
+      { h: 6.5, floor: 'upper', room: 'master', act: "Just awake, staring out of the window" },
+      { h: 7.5, floor: 'upper', room: 'masterbath', act: "Washing up in the bathroom" },
+      { h: 8.4, floor: 'ground', room: 'kitchen', act: "Making coffee at the island" },
+      { h: 9.5, floor: 'ground', room: 'study', act: "Working in the study" },
+      { h: 13, floor: 'ground', room: 'dining', act: "Lunch at the long table" },
+      { h: 15, floor: 'ground', room: 'study', act: "Reading in the study" },
+      { h: 18.5, floor: 'ground', room: 'wetkitchen', act: "Cooking dinner in the wet kitchen" },
+      { h: 20, floor: 'ground', room: 'living', act: "A film on the sofa" },
+      { h: 22.5, floor: 'upper', room: 'master', act: "Heading to bed" },
     ],
   },
   {
-    id: 'man', name: '小满', tint: '#d3a07e',
+    id: 'man', name: "Mia", tint: '#d3a07e',
     day: [
-      { h: 6.5, floor: 'upper', room: 'kids', act: '还在睡回笼觉' },
-      { h: 8, floor: 'upper', room: 'bath2', act: '在公卫刷牙' },
-      { h: 8.6, floor: 'ground', room: 'dining', act: '准备在餐桌旁吃点心' },
-      { h: 10, floor: 'upper', room: 'family', act: '在家庭厅拼乐高' },
-      { h: 12.5, floor: 'ground', room: 'dining', act: '在长桌吃午饭' },
-      { h: 14, floor: 'upper', room: 'balcony', act: '准备在阳台晒太阳' },
-      { h: 17, floor: 'upper', room: 'kids', act: '在儿童房画画' },
-      { h: 19, floor: 'ground', room: 'living', act: '在地毯上打滚' },
-      { h: 21, floor: 'upper', room: 'kids', act: '听完故事睡着了' },
+      { h: 6.5, floor: 'upper', room: 'kids', act: "Still fast asleep" },
+      { h: 8, floor: 'upper', room: 'bath2', act: "Brushing teeth in the common bath" },
+      { h: 8.6, floor: 'ground', room: 'dining', act: "Having a snack at the dining table" },
+      { h: 10, floor: 'upper', room: 'family', act: "Building Lego in the family hall" },
+      { h: 12.5, floor: 'ground', room: 'dining', act: "Lunch at the long table" },
+      { h: 14, floor: 'upper', room: 'balcony', act: "Sunbathing on the balcony" },
+      { h: 17, floor: 'upper', room: 'kids', act: "Drawing in her room" },
+      { h: 19, floor: 'ground', room: 'living', act: "Rolling around on the rug" },
+      { h: 21, floor: 'upper', room: 'kids', act: "Asleep after her story" },
     ],
   },
 ];
 
 export const WEATHER = [
-  { id: 'sun', label: '晴', icon: '☀️' },
-  { id: 'cloud', label: '多云', icon: '☁️' },
-  { id: 'rain', label: '雨', icon: '🌧️' },
+  { id: 'sun', label: 'Clear', icon: '☀️' },
+  { id: 'cloud', label: 'Cloudy', icon: '☁️' },
+  { id: 'rain', label: 'Rain', icon: '🌧️' },
 ];
