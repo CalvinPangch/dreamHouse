@@ -43,6 +43,37 @@ samples. These samples illustrate material categories, not exact product finishe
 Font licenses are included in `assets/fonts/`. Entry and camera animations respect
 the device's reduced-motion preference.
 
+## Architecture Studio
+
+`/studio` is a room planner built from the same collection: pick a piece from the
+oak & linen catalogue, click the plan to place it, drag it around, set its finish,
+and switch to a 3D view of the room.
+
+Pieces snap to the walls, to each other and to a 5 cm grid — hold `Alt` to place
+one freely. `R` rotates 15° (`⇧R` for 90°), `⌘D` duplicates, `⌫` removes, `V`
+switches view, `⌘Z` / `⇧⌘Z` undo and redo. The 3D view is camera only; arranging
+happens on the plan.
+
+### Where a room is saved
+
+Saving is explicit — the Save button, or `⌘S` — and the chip under the project
+name always says exactly where the room stands: **Not saved yet**, **Unsaved
+changes**, **Saved on this device**, or **Saved to your account**. Click it and a
+panel names both destinations separately, so "on this device" is never mistaken
+for "kept somewhere safe". A continuously-written draft means closing the tab
+mid-edit loses nothing — it comes back still marked as unsaved.
+
+**Sign in with ChatGPT** is optional and adds the second destination: rooms kept
+against your account, reopened on any device with the furniture, finishes,
+dimensions and view settings intact. When a deployment has no OpenAI credentials
+configured, the studio hides the account UI rather than offering a button that
+cannot work — everything else carries on unchanged.
+
+Setup, the OAuth flow and the storage layout are in
+[`docs/saving-and-accounts.md`](docs/saving-and-accounts.md); copy `.env.example`
+to get started. The API routes under `api/` are dependency-free ES modules, so
+the project still deploys with nothing to install.
+
 ## The design
 
 **Ground floor** — foyer · living · dining · open kitchen with island · wet kitchen ·

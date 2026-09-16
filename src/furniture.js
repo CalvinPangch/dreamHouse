@@ -149,7 +149,7 @@ const B = {
     g.add(soft(w, 0.24, d, oak, { y: 2.4, radius: 0.1 }));
     for (const sx of [-1, 1]) for (const sz of [-1, 1])
       g.add(cyl(0.13, 0.13, 2.3, oak, { x: sx * (w / 2 - 0.4), y: 1.15, z: sz * (d / 2 - 0.5) }));
-    const n = it.chairs || 6;
+    const n = it.chairs ?? 6;
     for (let i = 0; i < n; i++) {
       const side = i < n / 2 ? -1 : 1;
       const idx = i % (n / 2);
